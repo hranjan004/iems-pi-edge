@@ -3,7 +3,7 @@
 ## Why
 
 Kafka exists in the stack today only to carry meter readings from the producer to
-AnyLog, through a separate bridge process. AnyLog already runs an MQTT broker, and the
+AnyLog, through a separate bridge process. AnyLog and EdgeLake both run an MQTT broker, and the
 solar producer already publishes to it directly. Kafka, Kafka UI and the bridge cost
 about 1.5 GB of memory and add two failure points.
 
@@ -39,7 +39,7 @@ it. Timestamps stay UTC.
 
 ## Message client
 
-[streaming/anylog_msg_client.al](../streaming/anylog_msg_client.al) registers the
+[streaming/edgelake_msg_client.al](../streaming/edgelake_msg_client.al) registers the
 mapping from topic `egauge` to `energy_readings`. It follows the same form as the
 existing `solar` client.
 

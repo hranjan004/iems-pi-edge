@@ -92,4 +92,4 @@ and the dashboard, total under 300 MB.
 | Subpanel channels read negative while model normalization means are positive | Sign convention must be settled before retraining | Phase 1 |
 | Decision support compares `state == 1` while state is stored as `'on'` | Zero recommendations | Phase 1 |
 | Only 2 of 22 appliance heads have independent measurement | Remaining heads train on synthetic labels | [08-retraining-pipeline.md](08-retraining-pipeline.md) |
-| AnyLog network routing returned empty because the ledger advertised the operator at 127.0.0.1 | Cross-host queries fail | [06-anylog-topology.md](06-anylog-topology.md) |
+| AnyLog network routing returned empty because the ledger advertised the operator at 127.0.0.1 | Cross-host queries fail | [06-edgelake-topology.md](06-edgelake-topology.md) |

@@ -1,8 +1,8 @@
 [Unit]
 StartLimitIntervalSec=0
 Description=IEMS NILM inference loop (ONNX, every 30 s)
-After=anylog-operator.service
-Wants=anylog-operator.service
+After=edgelake-operator.service
+Wants=edgelake-operator.service
 RequiresMountsFor=/srv/iems
 
 [Service]

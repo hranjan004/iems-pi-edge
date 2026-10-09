@@ -15,7 +15,7 @@ fail=0
 ok()  { printf 'ok    %s\n' "$*"; }
 bad() { printf 'FAIL  %s\n' "$*"; fail=1; }
 
-for u in anylog-operator iems-egauge-producer iems-solar-producer iems-inference iems-backend iems-dashboard; do
+for u in edgelake-operator iems-egauge-producer iems-solar-producer iems-inference iems-backend iems-dashboard; do
   systemctl is-active --quiet "$u" && ok "$u active" || bad "$u not active"
 done
 

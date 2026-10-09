@@ -1,14 +1,18 @@
 #-----------------------------------------------------------------------------
-# AnyLog message clients for the edge operator.
+# EdgeLake message clients for the edge operator.
 #
-# The operator runs its own MQTT broker (broker = local). Each client subscribes
-# to one topic and maps JSON fields onto table columns with "bring".
+# The node runs its own MQTT broker on ANYLOG_BROKER_PORT (1883 on the Pi), and
+# each client subscribes to one topic and maps JSON fields onto columns with "bring".
+# install.sh copies this file to deployment-scripts/node-deployment/local_script.al,
+# which the node runs on every start when DEPLOY_LOCAL_SCRIPT=true.
 #
-# energy_readings schema, verified against the live operator:
+# The same commands work unchanged on the current AnyLog host for the Kafka cutover.
+# The egauge client was tested on EdgeLake at the site rate on 2026-10-09.
+#
+# energy_readings schema, verified against the live AnyLog operator:
 #   ts timestamp, dev varchar, nm varchar, tp char(1), w float, kwh float
 #
-# Register from the operator CLI, or append to the operator's local script so
-# the clients come back after a restart. Check with:
+# Check registration with:
 #   get msg client
 #-----------------------------------------------------------------------------
 

@@ -1,6 +1,6 @@
 # ADR 0005. Run Pi services natively under systemd, not in Docker
 
-Status: Accepted, 2026-10-09
+Status: Accepted, 2026-10-09. Amended by ADR 0007, which settles the open question below by using EdgeLake.
 
 ## Context
 

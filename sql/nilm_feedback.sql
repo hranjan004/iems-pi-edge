@@ -1,7 +1,7 @@
 -- Household feedback on NILM detections, captured on the Pi dashboard.
 --
 -- Written through the IEMS backend on the Pi and archived to the cloud like any
--- other table. When streamed through AnyLog, omit insert_timestamp from the payload
+-- other table. When streamed through EdgeLake, omit insert_timestamp from the payload
 -- and send timestamps in UTC without a trailing Z.
 --
 -- label:

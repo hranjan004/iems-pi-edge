@@ -13,7 +13,7 @@ flowchart LR
     direction TB
     EGP["egauge producer"]
     SAP["solar producer"]
-    OP[("AnyLog edge operator<br/>MQTT broker, SQLite on SSD")]
+    OP[("EdgeLake edge operator<br/>MQTT broker, SQLite on SSD")]
     INF["NILM inference<br/>3 BiLSTM ONNX models"]
     BE["IEMS backend<br/>FastAPI, decision support"]
     DASH["Node dashboard :47821"]
@@ -22,9 +22,9 @@ flowchart LR
 
   subgraph CLOUD["Cloud, on the tailnet"]
     direction TB
-    MS["AnyLog master"]
-    AOP[("Archive operator<br/>Postgres")]
-    GUI["AnyLog GUI<br/>IEMS plugin, MCP, Ask"]
+    MS["EdgeLake master"]
+    AOP[("EdgeLake archive operator<br/>Postgres, MCP endpoint")]
+    GUI["AnyLog remote GUI<br/>IEMS plugin, MCP client, Ask"]
     LLM["Hosted LLM API"]
     REV["Label review<br/>Gemma, GPU, nightly"]
     TRN["BiLSTM retraining<br/>CPU, weekly"]
@@ -51,4 +51,4 @@ flowchart LR
 
 Solid lines stay on one machine or the house LAN. Dashed lines cross the tailnet.
 The Pi opens every tailnet connection except GUI queries, which reach only the Pi's
-AnyLog REST port. Nothing in the cloud can reach Home Assistant or the meter.
+EdgeLake REST port. Nothing in the cloud can reach Home Assistant or the meter.

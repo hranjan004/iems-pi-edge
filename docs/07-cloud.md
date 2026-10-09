@@ -4,8 +4,8 @@
 
 | Service | Why it is not on the Pi |
 |---|---|
-| AnyLog master | Must outlive house outages, see [06](06-anylog-topology.md) |
-| Archive operator and Postgres | Indefinite history does not fit on a 1 GB edge node |
+| EdgeLake master | Must outlive house outages, see [06](06-edgelake-topology.md) |
+| EdgeLake archive operator and Postgres | Indefinite history does not fit on a 1 GB edge node |
 | AnyLog remote GUI with the IEMS plugin and MCP client | 632 MB image, not needed for the live view |
 | Language model for Ask and MCP | Replaces a local 3B model that used 1.37 GB |
 | Retraining and label review | Batch compute, GPU for review only |

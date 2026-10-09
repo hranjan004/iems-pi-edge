@@ -1,8 +1,8 @@
 [Unit]
 StartLimitIntervalSec=0
 Description=IEMS backend, FastAPI decision support on port 8009
-After=anylog-operator.service
-Wants=anylog-operator.service
+After=edgelake-operator.service
+Wants=edgelake-operator.service
 
 [Service]
 Type=simple
@@ -17,7 +17,9 @@ ProtectHome=true
 PrivateTmp=true
 RuntimeDirectory=iems
 RuntimeDirectoryPreserve=yes
-WorkingDirectory=/opt/iems/microgrid-manager/services/iems/backend
+# Model paths in the services are relative to the repository root, so run from there.
+# main_api is importable because edge.env puts services/iems/backend on PYTHONPATH.
+WorkingDirectory=/opt/iems/microgrid-manager
 ExecStart=/opt/iems/venv/bin/python3 -m uvicorn main_api:app --host 0.0.0.0 --port 8009 --workers 1
 MemoryHigh=140M
 MemoryMax=180M

@@ -1,0 +1,29 @@
+[Unit]
+StartLimitIntervalSec=0
+Description=EdgeLake edge operator (native, SQLite, MQTT broker on 1883)
+Documentation=file:///opt/iems/iems-pi-edge/docs/06-edgelake-topology.md
+After=network-online.target tailscaled.service
+Wants=network-online.target
+RequiresMountsFor=/srv/iems
+
+[Service]
+Type=simple
+User=iems
+Group=iems
+EnvironmentFile=/etc/iems/edgelake.env
+WorkingDirectory=/opt/iems/edgelake/EdgeLake
+# Runs EdgeLake from source at the commit pinned in docs/06, measured at 96 to 99 MB RSS.
+ExecStart=/opt/iems/venv-edgelake/bin/python3 edge_lake/edgelake.py process /opt/iems/edgelake/deployment-scripts/node-deployment/main.al
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/srv/iems/edgelake
+MemoryHigh=150M
+MemoryMax=200M
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target

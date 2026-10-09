@@ -26,7 +26,10 @@ were checked in October 2026 and should be rechecked before relying on them.
 | [systemd resource control](https://www.freedesktop.org/software/systemd/man/latest/systemd.resource-control.html) | `MemoryHigh` and `MemoryMax` used in every unit |
 | [Tailscale on Linux](https://tailscale.com/kb/1031/install-linux) | Tailnet between the Pi and the cloud VM |
 
-## AnyLog and EdgeLake
+## EdgeLake and AnyLog
+
+EdgeLake keeps AnyLog's command language and configuration, so AnyLog's documentation
+applies to EdgeLake except where it describes commercial features.
 
 | Resource | Why it matters |
 |---|---|
@@ -37,8 +40,11 @@ were checked in October 2026 and should be rechecked before relying on them.
 | [AnyLog high availability](https://github.com/AnyLog-co/documentation/blob/main/09-%20Data%20Management/03-%20High%20Availability.md) | Clusters replicate operator data, which is why they are not used for the edge to archive path |
 | [AnyLog MQTT message broker](https://github.com/AnyLog-co/documentation/blob/main/06-%20Networking%20%26%20Security/05-%20MQTT%20Message%20Broker.md) | The broker the producers publish to |
 | [AnyLog documentation index](https://github.com/AnyLog-co/documentation) | Message clients, streaming, deployment |
-| [EdgeLake](https://github.com/EdgeLake/EdgeLake) | Open-source distribution, fallback for the edge node |
-| [EdgeLake deployment scripts](https://github.com/EdgeLake/deployment-scripts) | Running from source or as a service, high availability settings |
+| [EdgeLake](https://github.com/EdgeLake/EdgeLake) | The platform every node runs. Mozilla Public License 2.0. Pinned at `faba50ddf8ee` |
+| [LF Edge, EdgeLake 2.0](https://lfedge.org/edgelake-2-0-building-momentum-at-the-edge/) | EdgeLake as the open-source core, AnyLog EDF as the commercial superset with HA and hardening |
+| [EdgeLake on Docker Hub](https://hub.docker.com/r/anylogco/edgelake) | arm64 and amd64 images, newest tag 1.4.2510 is older than the source |
+| [EdgeLake deployment scripts](https://github.com/EdgeLake/deployment-scripts) | `main.al` and `set_params.al`, every configuration variable used in pi/config/edgelake.env.example. Pinned at `45b830b473a5` |
+| [EdgeLake docker-compose](https://github.com/EdgeLake/docker-compose) | Reference node configurations by node type |
 
 ## Inference
 
@@ -53,6 +59,7 @@ were checked in October 2026 and should be rechecked before relying on them.
 
 | Resource | Why it matters |
 |---|---|
+| [uv Python management](https://docs.astral.sh/uv/guides/install-python/) | Installs the Python 3.11 runtime on the Pi |
 | [Eclipse Paho Python client](https://eclipse.dev/paho/files/paho.mqtt.python/html/index.html) | MQTT client used by both producers, callback API version 2 |
 | [eGauge web API](https://webapi.egauge.net/) | Register API polled by the producer |
 

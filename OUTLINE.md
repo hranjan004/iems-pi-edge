@@ -9,9 +9,9 @@ that must pass before the next phase starts.
 **In scope**
 
 1. Removing Kafka and its UI and bridge from the data path
-2. Running ingestion, the AnyLog operator, NILM inference, the IEMS backend and the
+2. Running ingestion, an EdgeLake operator, NILM inference, the IEMS backend and the
    live dashboard on the Pi
-3. Moving the AnyLog master, the long-term archive, the AnyLog GUI and the language
+3. Moving the EdgeLake master, the long-term archive, the AnyLog remote GUI and the language
    model to the cloud
 4. A cloud retraining pipeline that uses label provenance, human feedback and batch
    label review, and that publishes versioned ONNX models for the Pi to pull
@@ -26,16 +26,16 @@ that must pass before the next phase starts.
 
 | Component | Today | Target | Reason |
 |---|---|---|---|
-| eGauge producer | Host, Kafka | Pi, MQTT to local AnyLog | Kafka is the largest fixed cost in the stack |
-| Solar producer | Host, AnyLog MQTT | Pi, unchanged | Already Kafka-free |
+| eGauge producer | Host, Kafka | Pi, MQTT to local EdgeLake | Kafka is the largest fixed cost in the stack |
+| Solar producer | Host, AnyLog MQTT | Pi, EdgeLake MQTT, code unchanged | Already Kafka-free |
 | Kafka, Kafka UI, bridge | Host | Removed | About 1.5 GB combined |
-| AnyLog operator | Host, Docker | Pi, native process, SQLite, short retention | Buffer and local query point |
-| AnyLog master | Host | Cloud | Must stay reachable when the house link drops |
+| Licensed AnyLog operator | Host, Docker | EdgeLake operator on the Pi, native, SQLite, 3-day retention | Measured at 99 MB, open source, no license |
+| Licensed AnyLog master | Host | EdgeLake master in the cloud | Must stay reachable when the house link drops |
 | Archive operator and Postgres | Host | Cloud | Long-term record and training source |
 | IEMS backend (FastAPI, DSS) | Host, started by hand | Pi | Recommendations must survive an outage |
 | NILM inference loop | Host | Pi | 80 MB measured, cheapest workload in the stack |
 | Node dashboard | Host | Pi | Live view and thermostat control stay local |
-| AnyLog GUI and MCP client | Host | Cloud | Heavy image, not needed for the live view |
+| AnyLog remote GUI and MCP client | Host | Cloud, against the EdgeLake network | Heavy image, not needed for the live view |
 | Local LLM (Ollama) | Host | Cloud API | 1.37 GB measured, mostly swapped out |
 | Grafana | Host | Removed | Superseded by the dashboard |
 | Retraining and label review | Laptop, by hand | Cloud batch | GPU only for label review, CPU for the BiLSTM |
@@ -58,17 +58,16 @@ that must pass before the next phase starts.
 
 1. Resolve the subpanel sign convention (channels read negative while normalization means are positive)
 2. Fix the decision support state type mismatch (`'on'` stored, `1` compared)
-3. Confirm with the AnyLog team whether the licensed build runs natively on arm64,
-   and whether a Pi operator keeps answering local queries while the master is unreachable
-4. Confirm with the site owner and the AnyLog sponsor that data may leave the house to a private cloud bucket
+3. Tell the AnyLog sponsor that the new deployment runs EdgeLake only, per ADR 0007
+4. Confirm with the site owner and the sponsor that data may leave the house to a private cloud bucket
 
-**Acceptance.** Written answers to items 3 and 4. Unit tests for items 1 and 2.
+**Acceptance.** Written answer to item 4. Unit tests for items 1 and 2.
 
 ### Phase 2. Bring up the Pi alongside the host
 
 1. Flash 64-bit Raspberry Pi OS Lite or DietPi, apply [pi/scripts/bootstrap.sh](pi/scripts/bootstrap.sh)
-2. Mount a USB SSD for the AnyLog data directory
-3. Run [pi/scripts/bench_onnx.py](pi/scripts/bench_onnx.py) and record p95 tick time and peak RSS
+2. Mount a USB SSD for the EdgeLake data directory
+3. Run [pi/scripts/bench_onnx.py](pi/scripts/bench_onnx.py) and [pi/scripts/footprint.sh](pi/scripts/footprint.sh), and record p95 tick time and RSS per unit
 4. Install the services with [pi/scripts/install.sh](pi/scripts/install.sh) in shadow mode,
    writing to a separate table so the host stays authoritative
 
@@ -77,8 +76,8 @@ inference p95 under 10 s per tick, and NILM states matching the host on at least
 
 ### Phase 3. Stand up the cloud side
 
-1. AnyLog master, archive operator and Postgres from [cloud/docker-compose.yml](cloud/docker-compose.yml)
-2. AnyLog GUI pointed at the cloud model
+1. EdgeLake master, archive operator and Postgres from [cloud/docker-compose.yml](cloud/docker-compose.yml), built from the commit the Pi runs
+2. AnyLog remote GUI and MCP client pointed at the cloud model and the EdgeLake network, verified working
 3. Archive path from the Pi operator to the cloud operator
 
 **Acceptance.** A network query from the cloud GUI returns rows held only on the Pi.
@@ -104,9 +103,8 @@ held-out set, and the Pi rolls it back cleanly on command.
 ## 4. Open decisions
 
 Tracked in [docs/11-open-questions.md](docs/11-open-questions.md). The ones that can
-change the plan are whether AnyLog runs natively on arm64 under the current license,
-and whether the measured operator footprint on the Pi stays near the documented
-100 MB native figure.
+change the plan are whether the AnyLog remote GUI and MCP client work unchanged against
+EdgeLake, and whether the EdgeLake footprint measured on x86 (99 MB) holds on the Pi.
 
 ## 5. Deliverables in this repository
 
@@ -116,7 +114,8 @@ and whether the measured operator footprint on the Pi stays near the documented
 | Memory budget | [docs/03-memory-budget.md](docs/03-memory-budget.md) |
 | Pi build guide | [docs/04-pi-setup.md](docs/04-pi-setup.md) |
 | Kafka removal | [docs/05-kafka-removal.md](docs/05-kafka-removal.md), [streaming/](streaming/) |
-| AnyLog topology | [docs/06-anylog-topology.md](docs/06-anylog-topology.md) |
+| EdgeLake topology | [docs/06-edgelake-topology.md](docs/06-edgelake-topology.md) |
+| Footprint measurements | [docs/measurements/2026-10-09-edgelake.md](docs/measurements/2026-10-09-edgelake.md) |
 | Cloud services | [docs/07-cloud.md](docs/07-cloud.md), [cloud/](cloud/) |
 | Retraining pipeline | [docs/08-retraining-pipeline.md](docs/08-retraining-pipeline.md), [cloud/retraining/](cloud/retraining/), [sql/](sql/) |
 | Failure handling | [docs/09-failure-modes.md](docs/09-failure-modes.md) |

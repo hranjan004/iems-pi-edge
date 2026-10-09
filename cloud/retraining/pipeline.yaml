@@ -8,7 +8,7 @@ schedule:
   timezone: America/Los_Angeles
 
 export:
-  source: archive-operator           # AnyLog archive operator backed by Postgres
+  source: archive-operator           # EdgeLake archive operator backed by Postgres
   tables: [energy_readings, solar_data, nilm_disaggregated, nilm_feedback]
   window_minutes: 12
   stride_minutes: 6

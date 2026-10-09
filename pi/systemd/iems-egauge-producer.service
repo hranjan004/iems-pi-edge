@@ -1,8 +1,8 @@
 [Unit]
 StartLimitIntervalSec=0
-Description=eGauge register poller publishing to AnyLog MQTT
-After=anylog-operator.service
-Wants=anylog-operator.service
+Description=eGauge register poller publishing to the EdgeLake MQTT broker
+After=edgelake-operator.service
+Wants=edgelake-operator.service
 RequiresMountsFor=/srv/iems
 
 [Service]

@@ -1,15 +1,18 @@
 #!/usr/bin/env python3
-"""eGauge register poller that publishes to AnyLog's MQTT broker.
+"""eGauge register poller that publishes to the EdgeLake node's MQTT broker.
 
 Replaces the Kafka producer and the Kafka to AnyLog bridge. Each poll reads the
 instantaneous rate of every register and publishes one JSON message per register
-to the AnyLog broker. An AnyLog message client (see anylog_msg_client.al) maps the
+to the node's broker. A message client (see edgelake_msg_client.al) maps the
 topic onto the energy_readings table, whose schema is unchanged:
 
     ts timestamp, dev varchar, nm varchar, tp char(1), w float, kwh float
 
-Timestamps are UTC without a trailing Z, because AnyLog's streaming ingest has
-failed to coerce the Z form.
+Timestamps are UTC without a trailing Z, because AnyLog and EdgeLake streaming
+ingest have failed to coerce the Z form.
+
+The same producer works against the current AnyLog host, which is how Kafka is
+removed there before any Pi exists.
 
 When the broker is unreachable, messages are appended to a bounded spool file and
 replayed in order on reconnect. The spool lives on the SSD, never the SD card.
@@ -150,7 +153,7 @@ class Publisher:
         ok = (rc == 0) if isinstance(rc, int) else not getattr(rc, "is_failure", False)
         if ok:
             self.connected.set()
-            log.info("connected to AnyLog broker %s:%s", self.host, self.port)
+            log.info("connected to broker %s:%s", self.host, self.port)
         else:
             log.error("broker refused connection rc=%s", rc)
 

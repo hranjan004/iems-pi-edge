@@ -1,8 +1,8 @@
 [Unit]
 StartLimitIntervalSec=0
-Description=Solar Assistant MQTT to AnyLog producer
-After=anylog-operator.service
-Wants=anylog-operator.service
+Description=Solar Assistant MQTT to EdgeLake producer
+After=edgelake-operator.service
+Wants=edgelake-operator.service
 
 [Service]
 Type=simple

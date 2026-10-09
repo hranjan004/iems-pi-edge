@@ -24,7 +24,7 @@ add_line "$BOOT_CFG" "dtoverlay=disable-bt"
 say "Packages"
 apt-get update
 apt-get install -y --no-install-recommends \
-  python3-venv python3-dev git curl jq zram-tools unattended-upgrades nodejs
+  python3-venv python3-dev build-essential git curl jq zram-tools unattended-upgrades nodejs
 apt-get purge -y triggerhappy 2>/dev/null || true
 
 say "Volatile journald, capped at 32 MB"
@@ -80,7 +80,7 @@ if [[ -n "${SSD_UUID:-}" ]]; then
   add_line /etc/fstab "UUID=$SSD_UUID /srv/iems ext4 defaults,noatime,nofail,x-systemd.device-timeout=30 0 2"
   systemctl daemon-reload
   mount /srv/iems || true
-  mkdir -p /srv/iems/{anylog,models,buffer}
+  mkdir -p /srv/iems/{edgelake,models,buffer}
   chown -R iems:iems /srv/iems
 fi
 

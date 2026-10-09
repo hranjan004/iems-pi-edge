@@ -7,7 +7,7 @@ flowchart TB
   subgraph PI["Raspberry Pi 3 B+, 64-bit OS Lite"]
     direction TB
     subgraph SYSTEMD["systemd units with MemoryMax"]
-      U1["anylog-operator<br/>32148 TCP, 32149 REST, 1883 MQTT<br/>MemoryMax 350M"]
+      U1["edgelake-operator<br/>32148 TCP, 32149 REST, 1883 MQTT<br/>MemoryMax 200M"]
       U2["iems-egauge-producer<br/>MemoryMax 64M"]
       U3["iems-solar-producer<br/>MemoryMax 56M"]
       U4["iems-inference<br/>MemoryMax 160M"]
@@ -21,7 +21,7 @@ flowchart TB
       RAM["journal and /var/log in RAM<br/>zram swap"]
     end
     subgraph SSD["USB SSD at /srv/iems"]
-      AL[("anylog/ SQLite")]
+      AL[("edgelake/ SQLite and JSON archive")]
       MD[("models/current -> vN")]
       SP[("buffer/ producer spool")]
     end
@@ -36,8 +36,8 @@ flowchart TB
 ```mermaid
 flowchart TB
   subgraph VM["Always-on VM, 2 vCPU, 4 GB, Docker Compose"]
-    M["anylog-master<br/>32048, 32049"]
-    A["anylog-archive<br/>32158, 32159"]
+    M["edgelake-master<br/>32048, 32049"]
+    A["edgelake-archive<br/>32158, 32159, MCP"]
     PG[("postgres")]
     G["iems-remote-gui<br/>3001"]
     T["tailscale"]

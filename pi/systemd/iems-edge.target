@@ -1,6 +1,6 @@
 [Unit]
 Description=All IEMS edge services
-Wants=anylog-operator.service iems-egauge-producer.service iems-solar-producer.service iems-inference.service iems-backend.service iems-dashboard.service iems-pull-models.timer iems-healthcheck.timer
+Wants=edgelake-operator.service iems-egauge-producer.service iems-solar-producer.service iems-inference.service iems-backend.service iems-dashboard.service iems-pull-models.timer iems-healthcheck.timer
 
 [Install]
 WantedBy=multi-user.target

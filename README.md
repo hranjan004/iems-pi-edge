@@ -2,9 +2,9 @@
 
 Edge and cloud split for a residential microgrid energy management system (IEMS).
 A Raspberry Pi 3 Model B+ sits between the house and the cloud. It collects meter
-and solar data, buffers it in a local AnyLog operator, runs NILM inference and the
+and solar data, buffers it in a local EdgeLake operator, runs NILM inference and the
 decision support engine, and serves the live dashboard on the house LAN. The cloud
-holds the long-term archive, the AnyLog GUI, the language model behind the Ask box
+holds the long-term archive, the AnyLog remote GUI, the language model behind the Ask box
 and MCP client, and the retraining pipeline for the NILM models.
 
 This repository is the design and deployment bundle for that move. It is written
@@ -34,14 +34,14 @@ flowchart LR
   end
   subgraph PI[Raspberry Pi 3 B+]
     PR[Producers]
-    OP[AnyLog operator]
+    OP[EdgeLake operator]
     BE[IEMS backend and NILM inference]
     DB[Node dashboard]
   end
   subgraph CLOUD[Cloud]
-    MS[AnyLog master]
+    MS[EdgeLake master]
     AR[Archive operator and Postgres]
-    GUI[AnyLog GUI and MCP client]
+    GUI[Remote GUI and MCP client]
     LLM[Cloud LLM]
     RT[Retraining and label review]
   end
@@ -60,6 +60,22 @@ flowchart LR
 ```
 
 The full set of diagrams is in [architecture/](architecture/).
+
+## Footprint on the Pi
+
+Every node runs [EdgeLake](https://github.com/EdgeLake/EdgeLake), the open-source
+distribution of AnyLog, natively on the Pi and from a pinned build in the cloud.
+
+| | Value | Basis |
+|---|---|---|
+| EdgeLake operator RAM at the meter's rate | 96 to 99 MB | Measured |
+| Whole Pi stack RAM | about 570 MB of 1 GB | Measured per service, OS from published figures |
+| Software on the microSD card | about 4.6 GB of 16 GB | Measured environments, published OS size |
+| Data written per day | about 305 MB | Measured, one full day built in EdgeLake's schema |
+| Data held on the SSD | about 1.2 GB for three days | Derived from the daily figure |
+
+Method and raw numbers: [docs/measurements/2026-10-09-edgelake.md](docs/measurements/2026-10-09-edgelake.md).
+Budget: [docs/03-memory-budget.md](docs/03-memory-budget.md).
 
 ## Design principles
 
@@ -82,7 +98,7 @@ The full set of diagrams is in [architecture/](architecture/).
 | [docs/adr/](docs/adr/) | Architecture decision records |
 | [docs/resources.md](docs/resources.md) | Annotated web resources and references |
 | [architecture/](architecture/) | Mermaid diagrams for structure, data flow, deployment, retraining and failure handling |
-| [streaming/](streaming/) | eGauge producer rewritten for AnyLog's MQTT broker, and the matching AnyLog message client |
+| [streaming/](streaming/) | eGauge producer rewritten for the EdgeLake node's MQTT broker, and the matching message clients |
 | [pi/](pi/) | Systemd units, OS hardening, install and benchmark scripts, environment template |
 | [cloud/](cloud/) | Compose skeleton for the cloud side and the retraining pipeline outline |
 | [sql/](sql/) | Schemas for user feedback and label provenance |
@@ -91,7 +107,7 @@ The full set of diagrams is in [architecture/](architecture/).
 
 1. [docs/01-context.md](docs/01-context.md) for the system as it runs today, with measurements
 2. [docs/02-architecture.md](docs/02-architecture.md) for the target design
-3. [docs/03-memory-budget.md](docs/03-memory-budget.md) for why the Pi 3 B+ fits only without Docker
+3. [docs/03-memory-budget.md](docs/03-memory-budget.md) for RAM and disk, and why the Pi 3 B+ fits only without Docker
 4. [docs/10-migration-plan.md](docs/10-migration-plan.md) for the order of work
 
 ## First things to run

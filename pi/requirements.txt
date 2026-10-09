@@ -1,13 +1,19 @@
-# One shared environment for every Python service on the Pi.
-# Pinned to versions with published linux aarch64 wheels for Python 3.11.
-onnxruntime==1.20.1
+# IEMS services on the Pi: producers, inference loop, backend.
+# Python 3.11 to match the current containers (python:3.11-slim). The inference
+# code pins numpy below 2.0, and numpy 1.26 has no wheels for Python 3.13, which is
+# what Raspberry Pi OS (Debian 13) ships. install.sh therefore builds this venv on a
+# uv-managed Python 3.11. Every pin below has a linux aarch64 wheel for cp311.
 numpy==1.26.4
+pandas==2.2.3
+scipy==1.14.1
+onnxruntime==1.20.1
 fastapi==0.115.6
 uvicorn==0.32.1
+pydantic==2.10.4
 httpx==0.28.1
-psycopg2-binary==2.9.10
-scipy==1.14.1
-paho-mqtt==2.1.0
 requests==2.32.3
+psycopg2-binary==2.9.10
+python-dateutil==2.9.0.post0
+paho-mqtt==2.1.0
 egauge-python[all]==0.9.10
 pytest==8.3.4

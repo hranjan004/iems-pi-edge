@@ -4,13 +4,14 @@
 
 The Raspberry Pi is the hub. Everything the household needs in real time runs on it.
 Everything that is heavy, long-lived or shared across viewers runs in the cloud.
-The two sides are joined by a Tailscale tailnet and by a single AnyLog network.
+The two sides are joined by a Tailscale tailnet and by a single EdgeLake network.
+Every node runs EdgeLake, the open-source distribution of AnyLog ([ADR 0007](adr/0007-edgelake-only.md)).
 
 | Tier | Runs | Must work offline |
 |---|---|---|
 | House LAN | eGauge, Solar Assistant, Home Assistant | Yes |
-| Pi | Producers, AnyLog operator, IEMS backend with NILM inference, Node dashboard | Yes |
-| Cloud | AnyLog master, archive operator, Postgres, AnyLog GUI, cloud LLM, retraining | No |
+| Pi | Producers, EdgeLake operator, IEMS backend with NILM inference, Node dashboard | Yes |
+| Cloud | EdgeLake master, EdgeLake archive operator, Postgres, AnyLog remote GUI, cloud LLM, retraining | No |
 
 Diagrams: [system overview](../architecture/system-overview.md),
 [data flow](../architecture/data-flow.md), [deployment](../architecture/deployment.md).
@@ -33,16 +34,18 @@ These were settled in the design discussion and are recorded as ADRs.
 ### Producers
 
 `egauge_mqtt_producer.py` polls the meter's register API once per second and publishes
-one JSON message per register to the local AnyLog broker on topic `egauge`. An AnyLog
+one JSON message per register to the local EdgeLake broker on topic `egauge`. An EdgeLake
 message client maps that topic to the `energy_readings` table. The solar producer is
 unchanged and keeps publishing to topic `solar`, mapped to `solar_data`.
 
-### AnyLog operator
+### EdgeLake operator
 
-Runs natively as a background process with SQLite storage. It is the broker for both
-producers, the local query point for the backend, inference and dashboard, and the
-source for the archive copy in the cloud. Retention on the Pi is a few days. The data
-directory lives on a USB SSD, not the SD card.
+Runs natively from source under systemd with SQLite storage, measured at 96 to 99 MB.
+It is the broker for both producers, the local query point for the backend, inference
+and dashboard, and the source for the archive copy in the cloud. Partitions are daily
+and three are kept. The data directory lives on a USB SSD, not the SD card.
+Configuration: [pi/config/edgelake.env.example](../pi/config/edgelake.env.example).
+Topology and settings: [06-edgelake-topology.md](06-edgelake-topology.md).
 
 ### IEMS backend and NILM inference
 
@@ -64,7 +67,7 @@ buttons call the backend on the Pi directly instead of going through the cloud G
 
 ## Components in the cloud
 
-### AnyLog master
+### EdgeLake master
 
 Holds the network metadata. It lives in the cloud because every node needs to reach
 it and the house uplink is the least reliable link in the system. The Pi keeps a local
@@ -72,14 +75,16 @@ copy of the metadata so that loss of the master does not stop local operation.
 
 ### Archive operator and Postgres
 
-A second operator in the same AnyLog network, backed by Postgres, holds the full
+A second EdgeLake operator in the same network, backed by Postgres, holds the full
 history. It is the source for retraining and for any query that spans more than the
 Pi's retention window.
 
-### AnyLog GUI, MCP client and Ask
+### AnyLog remote GUI, MCP client and Ask
 
-The remote GUI image with the IEMS plugin, pointed at the cloud LLM. A network query
-from the GUI is routed by AnyLog to whichever operator holds the data, so recent rows
+The remote GUI image with the IEMS plugin, pointed at the cloud LLM. Its REST and MCP
+connections go to the cloud archive node, which has a query database and the MCP
+endpoint enabled. A network query
+from the GUI is routed by EdgeLake to whichever operator holds the data, so recent rows
 come from the Pi and history comes from the archive without custom plumbing.
 
 ### Retraining
@@ -92,14 +97,14 @@ Pi pulls from. See [08-retraining-pipeline.md](08-retraining-pipeline.md).
 
 | Service | Host | Port | Consumers |
 |---|---|---|---|
-| AnyLog operator TCP | Pi | 32148 | AnyLog network |
-| AnyLog operator REST | Pi | 32149 | Backend, inference, dashboard, cloud GUI |
-| AnyLog MQTT broker | Pi | 1883, LAN and loopback only | Producers |
+| EdgeLake operator TCP | Pi | 32148 | EdgeLake network |
+| EdgeLake operator REST | Pi | 32149 | Backend, inference, dashboard, cloud network queries |
+| EdgeLake MQTT broker | Pi | 1883, LAN and loopback only | Producers |
 | IEMS backend | Pi | 8009 | Dashboard, cloud GUI plugin |
 | Node dashboard | Pi | 47821 | Household on the LAN, operators over Tailscale |
-| AnyLog master TCP and REST | Cloud | 32048, 32049 | All nodes |
-| Archive operator | Cloud | 32158, 32159 | AnyLog network |
-| AnyLog GUI | Cloud | 3001 | Operators over Tailscale |
+| EdgeLake master TCP and REST | Cloud | 32048, 32049 | All nodes |
+| EdgeLake archive operator, MCP endpoint | Cloud | 32158, 32159 | EdgeLake network, MCP client |
+| AnyLog remote GUI | Cloud | 3001 | Operators over Tailscale |
 
 Ports follow the existing deployment so that scripts and documentation carry over.
 The archive operator ports are new and are placeholders until the cloud compose is finalized.
@@ -110,4 +115,4 @@ The archive operator ports are new and are placeholders until the cloud compose 
 2. Home Assistant credentials stay on the Pi.
 3. The MQTT broker binds to loopback and the LAN, never to the tailnet.
 4. Cloud services are reachable only over Tailscale. No public ports.
-5. Data leaving the house requires sign-off from the site owner and the AnyLog sponsor (Phase 1).
+5. Data leaving the house requires sign-off from the site owner and the project sponsor (Phase 1).

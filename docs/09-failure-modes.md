@@ -6,7 +6,7 @@ What each failure costs, and what the household sees.
 |---|---|---|---|---|---|---|
 | Internet uplink down | Continues | Continues | Continues on the LAN | Paused, backfills on reconnect | Unavailable | Automatic |
 | Cloud VM down | Continues | Continues | Continues | Paused, backfills | Unavailable | Automatic after VM returns |
-| AnyLog master down | Continues on local metadata | Continues | Continues | Depends on transfer method | Network queries fail | Automatic, confirm in Phase 1 |
+| EdgeLake master down | Continues on local metadata | Continues | Continues | Depends on transfer method | Network queries through the master fail | Automatic, tested in Phase 3 |
 | Pi operator restart | Producers spool to SSD | Skips ticks, marks stale | Shows stale state | Unaffected | Shows Pi offline | Automatic, spool replays |
 | Pi power loss | Lost for the outage | Lost | Lost | Unaffected | Shows Pi offline | Automatic on power return |
 | SD card failure | Down | Down | Down | Unaffected | Shows Pi offline | Reflash, data on SSD survives |

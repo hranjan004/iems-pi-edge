@@ -11,3 +11,4 @@ edited after acceptance. A changed decision gets a new record that supersedes th
 | [0004](0004-dashboard-split.md) | Node dashboard on the Pi, AnyLog GUI in the cloud | Accepted |
 | [0005](0005-native-services-on-pi.md) | Run Pi services natively under systemd, not in Docker | Accepted |
 | [0006](0006-cloud-retraining-pull-model.md) | Retrain in the cloud, Pi pulls promoted models | Accepted |
+| [0007](0007-edgelake-only.md) | Use EdgeLake, the open-source distribution, on every node | Accepted |

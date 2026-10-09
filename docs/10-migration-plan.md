@@ -19,7 +19,7 @@ Exit criterion: host swap under 500 MB for 48 hours with all dashboards complete
 
 ## Phase 1. Prerequisites
 
-Sign convention, DSS state type, AnyLog native arm64 and offline behavior, and data
+Sign convention, DSS state type, telling the sponsor about the move to EdgeLake, and data
 sharing sign-off. See [11-open-questions.md](11-open-questions.md).
 
 ## Phase 2. Pi in shadow
@@ -60,8 +60,8 @@ per [08-retraining-pipeline.md](08-retraining-pipeline.md).
 | Phase | Effort | Blocked by |
 |---|---|---|
 | 0 | 2 to 3 days | Nothing |
-| 1 | 1 week elapsed, mostly waiting on answers | AnyLog team, site owner |
-| 2 | 1 week build, 1 week shadow | Phase 1 item on native arm64 |
+| 1 | 1 week elapsed, mostly waiting on answers | Sponsor, site owner |
+| 2 | 1 week build, 1 week shadow | Hardware on hand |
 | 3 | 3 to 4 days | Cloud account under a project owner |
 | 4 | 2 weeks elapsed | Phases 2 and 3 |
 | 5 | 2 to 3 weeks | Phase 1 sign convention |
