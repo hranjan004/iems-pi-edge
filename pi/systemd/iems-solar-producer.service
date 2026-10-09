@@ -1,0 +1,25 @@
+[Unit]
+StartLimitIntervalSec=0
+Description=Solar Assistant MQTT to AnyLog producer
+After=anylog-operator.service
+Wants=anylog-operator.service
+
+[Service]
+Type=simple
+User=iems
+Group=iems
+EnvironmentFile=/etc/iems/edge.env
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+RuntimeDirectory=iems
+RuntimeDirectoryPreserve=yes
+ExecStart=/opt/iems/venv/bin/python3 -u /opt/iems/microgrid-manager/streaming/solar-pipeline/solar_producer.py
+MemoryHigh=40M
+MemoryMax=56M
+
+[Install]
+WantedBy=multi-user.target

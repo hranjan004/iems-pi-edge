@@ -1,0 +1,13 @@
+# One shared environment for every Python service on the Pi.
+# Pinned to versions with published linux aarch64 wheels for Python 3.11.
+onnxruntime==1.20.1
+numpy==1.26.4
+fastapi==0.115.6
+uvicorn==0.32.1
+httpx==0.28.1
+psycopg2-binary==2.9.10
+scipy==1.14.1
+paho-mqtt==2.1.0
+requests==2.32.3
+egauge-python[all]==0.9.10
+pytest==8.3.4

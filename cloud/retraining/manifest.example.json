@@ -1,0 +1,19 @@
+{
+  "version": "v13",
+  "created_utc": "2026-11-02 04:41:12",
+  "parent": "v12",
+  "files": [
+    {"name": "nilm_panel1.onnx", "sha256": "<64 hex>", "n_features": 14},
+    {"name": "nilm_panel2.onnx", "sha256": "<64 hex>", "n_features": 14},
+    {"name": "nilm_panel3.onnx", "sha256": "<64 hex>", "n_features": 14},
+    {"name": "panel1_norm_bilstm.json", "sha256": "<64 hex>"},
+    {"name": "panel2_norm_bilstm.json", "sha256": "<64 hex>"},
+    {"name": "panel3_norm_bilstm.json", "sha256": "<64 hex>"}
+  ],
+  "evaluation": {
+    "heldout_events": 412,
+    "per_head_f1": {"panel_3/appliance_a": {"production": 0.71, "candidate": 0.78}},
+    "report": "report.html"
+  },
+  "label_counts_by_source": {"measured": 0, "human": 0, "device": 0, "review": 0, "rules": 0}
+}

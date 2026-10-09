@@ -1,0 +1,54 @@
+# Nightly retraining pipeline configuration.
+# Each stage reads from and writes to the label store and object storage, so any
+# stage can be rerun alone. See docs/08-retraining-pipeline.md.
+
+schedule:
+  export_and_review: "0 3 * * *"     # nightly, 03:00 Pacific
+  retrain: "0 4 * * 0"               # weekly, Sunday 04:00 Pacific
+  timezone: America/Los_Angeles
+
+export:
+  source: archive-operator           # AnyLog archive operator backed by Postgres
+  tables: [energy_readings, solar_data, nilm_disaggregated, nilm_feedback]
+  window_minutes: 12
+  stride_minutes: 6
+  output: s3://REGISTRY_BUCKET/exports/{date}/
+
+selection:
+  max_review_windows: 400
+  random_confident_sample: 40        # audit sample, measures review error rate
+  max_human_questions_per_day: 4
+  score: "entropy + 0.5 * disagreement"
+  favor_appliances_with_fewest_trusted_labels: true
+
+review:
+  model: gemma-4-26b-a4b-it          # open question Q8
+  adapter: null                       # retrain any adapter from an earlier generation
+  instance: single-gpu-on-demand
+  max_runtime_minutes: 60
+  allow_abstain: true
+  evidence_sections: [measured, inferred, device, context]
+
+training:
+  per_panel: true
+  init_from: production
+  learning_rate_scale: 0.1
+  replay_buffer_fraction: 0.3
+  loss_weights_from_view: source_weight
+  device: cpu
+  max_epochs: 30
+  early_stopping_metric: heldout_macro_f1
+
+export_checks:
+  assert_feature_count_from: services/iems/models/panel{n}_norm_bilstm.json
+  opset_min: 13
+
+promotion:
+  heldout_sources: [measured, human, device]
+  require_improvement_on_every_changed_head: true
+  min_heldout_events_per_head: 20
+  shadow_replay_days: 7
+
+publish:
+  registry: s3://REGISTRY_BUCKET/iems-models/
+  keep_versions: 10

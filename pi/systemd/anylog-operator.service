@@ -1,0 +1,33 @@
+[Unit]
+StartLimitIntervalSec=0
+Description=AnyLog edge operator (native, SQLite, MQTT broker)
+Documentation=file:///opt/iems/iems-pi-edge/docs/06-anylog-topology.md
+After=network-online.target tailscaled.service srv-iems.mount
+Wants=network-online.target
+RequiresMountsFor=/srv/iems
+
+[Service]
+Type=simple
+User=iems
+Group=iems
+EnvironmentFile=/etc/iems/edge.env
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+RuntimeDirectory=iems
+RuntimeDirectoryPreserve=yes
+WorkingDirectory=/opt/iems/anylog
+# Start command follows the AnyLog and EdgeLake deployment scripts for a native node.
+# AnyLog's documented pip wheels are x86_64 only, so on arm64 this runs EdgeLake from
+# source unless the AnyLog team supplies an arm64 build (open question Q1, docs/06).
+ExecStart=/opt/iems/venv/bin/python3 /opt/iems/anylog/anylog.py process /opt/iems/anylog/deployment-scripts/node-deployment/main.al
+ReadWritePaths=/srv/iems/anylog
+MemoryHigh=280M
+MemoryMax=350M
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target

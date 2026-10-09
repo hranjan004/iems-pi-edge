@@ -1,0 +1,30 @@
+[Unit]
+StartLimitIntervalSec=0
+Description=IEMS NILM inference loop (ONNX, every 30 s)
+After=anylog-operator.service
+Wants=anylog-operator.service
+RequiresMountsFor=/srv/iems
+
+[Service]
+Type=simple
+User=iems
+Group=iems
+EnvironmentFile=/etc/iems/edge.env
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+RuntimeDirectory=iems
+RuntimeDirectoryPreserve=yes
+WorkingDirectory=/opt/iems/microgrid-manager
+# Keep ONNX Runtime to two threads so the dashboard and operator stay responsive.
+Environment=OMP_NUM_THREADS=2
+ExecStart=/opt/iems/venv/bin/python3 -m iems.inference.inference_loop --tick ${INFERENCE_TICK_SECONDS}
+MemoryHigh=120M
+MemoryMax=160M
+Nice=5
+
+[Install]
+WantedBy=multi-user.target

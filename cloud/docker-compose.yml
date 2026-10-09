@@ -1,0 +1,109 @@
+# Cloud side of the IEMS split. Always-on services only.
+# Batch jobs (label review, retraining) run on separate on-demand instances.
+#
+# All addresses and credentials come from cloud/.env (see .env.example).
+# Services bind to the Tailscale address only. Nothing is published publicly.
+#
+#   docker compose --env-file .env up -d
+#
+# Never run `docker compose down` on a shared compose project. Stop services by name.
+
+name: iems-cloud
+
+x-anylog-env: &anylog_env
+  LICENSE_KEY: ${ANYLOG_LICENSE_KEY}
+  COMPANY_NAME: ${ANYLOG_COMPANY}
+  LEDGER_CONN: ${TAILNET_IP}:32048
+  OVERLAY_IP: ${TAILNET_IP}
+  TCP_BIND: "false"
+  REST_BIND: "false"
+
+services:
+  master:
+    image: ${ANYLOG_IMAGE}
+    container_name: anylog-master
+    restart: unless-stopped
+    environment:
+      <<: *anylog_env
+      NODE_TYPE: master
+      NODE_NAME: iems-master
+      ANYLOG_SERVER_PORT: "32048"
+      ANYLOG_REST_PORT: "32049"
+    ports:
+      - "${TAILNET_IP}:32048:32048"
+      - "${TAILNET_IP}:32049:32049"
+    volumes:
+      - master-anylog:/app/AnyLog-Network/anylog
+      - master-blockchain:/app/AnyLog-Network/blockchain
+      - master-data:/app/AnyLog-Network/data
+
+  archive:
+    image: ${ANYLOG_IMAGE}
+    container_name: anylog-archive
+    restart: unless-stopped
+    depends_on: [master, postgres]
+    environment:
+      <<: *anylog_env
+      NODE_TYPE: operator
+      NODE_NAME: iems-archive
+      CLUSTER_NAME: iems-archive-cluster
+      ANYLOG_SERVER_PORT: "32158"
+      ANYLOG_REST_PORT: "32159"
+      DEFAULT_DBMS: customers
+      DB_TYPE: psql
+      DB_USER: ${POSTGRES_USER}@postgres:${POSTGRES_PASSWORD}
+      DB_PORT: "5432"
+    ports:
+      - "${TAILNET_IP}:32158:32158"
+      - "${TAILNET_IP}:32159:32159"
+    volumes:
+      - archive-anylog:/app/AnyLog-Network/anylog
+      - archive-blockchain:/app/AnyLog-Network/blockchain
+      - archive-data:/app/AnyLog-Network/data
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: customers
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ../sql:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d customers"]
+      interval: 10s
+      retries: 5
+
+  iems-gui:
+    image: ${IEMS_GUI_IMAGE}
+    container_name: iems-gui
+    restart: unless-stopped
+    depends_on: [archive]
+    environment:
+      REMOTE_GUI_BE: "8000"
+      REMOTE_GUI_FE: "31800"
+      ANYLOG_REST_URL: http://${PI_TAILNET_IP}:32149
+      ANYLOG_USER_AGENT: AnyLog/1.23
+      ANYLOG_MCP_SSE_URL: http://${PI_TAILNET_IP}:32149/mcp/sse
+      IEMS_BACKEND_URL: http://${PI_TAILNET_IP}:8009
+      IEMS_DASH_URL: http://${PI_TAILNET_IP}:47821
+      LLM_API_TYPE: ${LLM_API_TYPE}
+      LLM_ENDPOINT: ${LLM_ENDPOINT}
+      LLM_API_KEY: ${LLM_API_KEY}
+      LLM_MODEL: ${LLM_MODEL}
+      HOUSE_TZ: America/Los_Angeles
+    ports:
+      - "${TAILNET_IP}:3001:31800"
+      - "${TAILNET_IP}:8000:8000"
+
+volumes:
+  master-anylog:
+  master-blockchain:
+  master-data:
+  archive-anylog:
+  archive-blockchain:
+  archive-data:
+  pgdata:

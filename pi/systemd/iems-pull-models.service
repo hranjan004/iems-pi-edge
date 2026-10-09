@@ -1,0 +1,15 @@
+[Unit]
+Description=Pull, verify and activate the latest promoted NILM model set
+After=network-online.target
+Wants=network-online.target
+RequiresMountsFor=/srv/iems
+
+[Service]
+Type=oneshot
+User=iems
+Group=iems
+EnvironmentFile=/etc/iems/edge.env
+ExecStart=/opt/iems/iems-pi-edge/pi/scripts/pull_models.sh
+ReadWritePaths=/srv/iems/models
+# Runs as root (+) only to restart inference after a new set was activated.
+ExecStartPost=+/bin/sh -c 'if [ -f /srv/iems/models/.activated ]; then rm -f /srv/iems/models/.activated; systemctl try-restart iems-inference.service; fi'

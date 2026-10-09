@@ -1,0 +1,26 @@
+[Unit]
+StartLimitIntervalSec=0
+Description=IEMS backend, FastAPI decision support on port 8009
+After=anylog-operator.service
+Wants=anylog-operator.service
+
+[Service]
+Type=simple
+User=iems
+Group=iems
+EnvironmentFile=/etc/iems/edge.env
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+RuntimeDirectory=iems
+RuntimeDirectoryPreserve=yes
+WorkingDirectory=/opt/iems/microgrid-manager/services/iems/backend
+ExecStart=/opt/iems/venv/bin/python3 -m uvicorn main_api:app --host 0.0.0.0 --port 8009 --workers 1
+MemoryHigh=140M
+MemoryMax=180M
+
+[Install]
+WantedBy=multi-user.target

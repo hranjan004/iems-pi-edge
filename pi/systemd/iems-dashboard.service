@@ -1,0 +1,27 @@
+[Unit]
+StartLimitIntervalSec=0
+Description=IEMS live dashboard (Node, port 47821)
+After=iems-backend.service anylog-operator.service
+Wants=iems-backend.service
+
+[Service]
+Type=simple
+User=iems
+Group=iems
+EnvironmentFile=/etc/iems/edge.env
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+RuntimeDirectory=iems
+RuntimeDirectoryPreserve=yes
+Environment=NODE_ENV=production
+Environment=PORT=47821
+ExecStart=/usr/bin/node --max-old-space-size=64 /opt/iems/microgrid-manager/services/iems/web/server.js
+MemoryHigh=64M
+MemoryMax=96M
+
+[Install]
+WantedBy=multi-user.target

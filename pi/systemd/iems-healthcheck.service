@@ -1,0 +1,7 @@
+[Unit]
+Description=IEMS edge healthcheck
+
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/iems/edge.env
+ExecStart=/opt/iems/iems-pi-edge/pi/scripts/healthcheck.sh --fix

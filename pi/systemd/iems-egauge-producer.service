@@ -1,0 +1,27 @@
+[Unit]
+StartLimitIntervalSec=0
+Description=eGauge register poller publishing to AnyLog MQTT
+After=anylog-operator.service
+Wants=anylog-operator.service
+RequiresMountsFor=/srv/iems
+
+[Service]
+Type=simple
+User=iems
+Group=iems
+EnvironmentFile=/etc/iems/edge.env
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+RuntimeDirectory=iems
+RuntimeDirectoryPreserve=yes
+ExecStart=/opt/iems/venv/bin/python3 -u /opt/iems/iems-pi-edge/streaming/egauge_mqtt_producer.py
+ReadWritePaths=/srv/iems/buffer
+MemoryHigh=48M
+MemoryMax=64M
+
+[Install]
+WantedBy=multi-user.target
