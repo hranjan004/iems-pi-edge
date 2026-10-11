@@ -77,7 +77,7 @@ The IEMS application, organised by the four domains of the Adabi (2016) architec
 | `runner.py` | `run_iems_cycle()`, the single entry point the user interfaces call |
 | `config.py` | Channels, appliances, time of use rates, load panels and critical appliances |
 | `weather.py` | Open-Meteo weather fetcher used as context by NILM and decision support |
-| `backend/` | The FastAPI service on port 8009, with `main_api.py`, the IEMS router and the Ask endpoint in `iems_ask.py` that answers questions through the local LLM |
+| `backend/` | The FastAPI service on port 8009, with `main_api.py`, the IEMS router and the Ask endpoint in `iems_ask.py` that answers questions through Nemotron 3.5 Lightning served locally |
 | `web/` | The Node dashboard on port 47821. `server.js` serves the dashboard and its APIs, `forecast.html` is the Predictions tab, `system-map.html` is the System map tab, `readiness.js` is the readiness monitor with its tests in `readiness.test.js`, `chart-analysis.js` provides the shared chart analysis controls for measured and forecast views and `patches/` holds the scripted edits applied to the history detector |
 | `inference/` | The 30 second inference loop, feature construction, the ONNX disaggregator, the Nemotron engine and its prompt, the appliance map and the additive rules that reconcile model output with measured watts |
 | `load/` | AnyLog queries, the LLM disaggregation path, anomaly checks, mobile load reconciliation and load shedding ranking |
@@ -127,6 +127,13 @@ The technical reference, written against the running production deployment. `doc
 ## What is not in this repository
 
 Credentials, `.env` files, tokens, private keys, raw meter exports, training datasets, logs and backup copies are deliberately left out. Locations are given only at city level.
+
+## Contributors
+
+| Name | Email |
+|---|---|
+| Harsh Ranjan | hranjan@ucsc.edu |
+| | tjmatsud@ucsc.edu |
 
 ## Contact
 

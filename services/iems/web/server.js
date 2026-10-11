@@ -480,8 +480,7 @@ async function handleCycle(req, res) {
 }
 
 // Ask: forward the question to the IEMS backend, which assembles the live
-// context and runs it against the local model. Generous timeout because a 3B
-// model on four CPU cores is not fast.
+// context and asks Nemotron 3.5 Lightning against it.
 async function handleAsk(req, res) {
   let body = ''
   req.on('data', c => body += c)
@@ -2089,7 +2088,7 @@ body{padding:12px 16px;display:flex;flex-direction:column;gap:9px;min-height:100
   <div style="display:flex;gap:9px;flex:1 0 auto;min-height:0">
     <div class="region" style="flex:1 1 auto;min-width:0">
       <h2><svg class="gly" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 5 A3 3 0 1 1 7 8 V9"/><circle cx="7" cy="12" r="0.6" fill="currentColor"/></svg>
-        Ask the local model
+        Ask Nemotron 3.5 Lightning
         <span class="tag" id="ask-tag">&mdash;</span>
       </h2>
       <div class="ctrl" style="margin-bottom:8px">
@@ -3679,7 +3678,7 @@ if ($('rl-cfg-save')) $('rl-cfg-save').onclick = async () => {
   renderRelay()
 }
 
-/* -- Ask tab: local model over the live context ------------------------- */
+/* -- Ask tab: Nemotron 3.5 Lightning over the live context ------------------------- */
 var ASK_PRESETS = [
   'Which appliances are on right now and what is each drawing?',
   'Is the battery charging or discharging, and what is the state of charge?',
@@ -3699,7 +3698,7 @@ function askAppend(role, text, meta) {
   var log = $('ask-log')
   if (log.querySelector('.dss-empty')) log.innerHTML = ''
   var cls = role === 'user' ? 'info' : 'ok'
-  var who = role === 'user' ? 'You' : 'Local model'
+  var who = role === 'user' ? 'You' : 'Nemotron'
   var el = document.createElement('div')
   el.className = 'dss-rec ' + cls
   el.style.gridTemplateColumns = '1fr'

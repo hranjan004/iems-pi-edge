@@ -20,7 +20,7 @@ COPY appliance_data_updated.txt /app/appliance_data_updated.txt
 COPY breaker_ratings.yaml /app/services/iems/detect/breaker_ratings.yaml
 ENV PYTHONPATH=/app:/app/services \
     IEMS_DASH_URL=http://host.docker.internal:47821 \
-    IEMS_ASK_MODEL=qwen2.5:3b-instruct \
+    IEMS_ASK_MODEL=nemotron-3.5-lightning \
     IEMS_REPO=/app/services
 WORKDIR /app
 ENTRYPOINT ["python3"]
