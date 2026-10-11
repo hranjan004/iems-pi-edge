@@ -1,0 +1,40 @@
+# Regenerated from AnyLog-co/docker-compose (new tooling), 2026-07-01.
+# Adapted for image anylogco/anylog-network:ucsc-arm: the node runs as root because
+# this image has no uid-10001 'anylog' user, so the new template's user:anylog and
+# init-container chown 10001 are intentionally omitted (they would crash / rewrite the ledger).
+# Reuses existing docker-compose-files_* named volumes -> blockchain ledger + data preserved in place.
+services:
+  master:
+    image: anylogco/anylog-network:ucsc-arm
+    user: root
+    restart: always
+    env_file:
+      - ../../docker-makefiles/master-configs/base_configs.env
+      - ../../docker-makefiles/master-configs/advance_configs.env
+      - ../../docker-makefiles/.env
+    container_name: master
+    stdin_open: true
+    tty: true
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "32048:32048"
+      - "32049:32049"
+    volumes:
+      - master-external-lib:/app/AnyLog-Network/external_lib
+      - master-anylog:/app/AnyLog-Network/anylog
+      - master-blockchain:/app/AnyLog-Network/blockchain
+      - master-data:/app/AnyLog-Network/data
+      - master-local-scripts:/app/deployment-scripts
+      - /var/run/docker.sock:/var/run/docker.sock
+volumes:
+  master-external-lib:
+  master-anylog:
+  master-blockchain:
+  master-data:
+  master-local-scripts:
+
+networks:
+  default:
+    external: true
+    name: anylog-net

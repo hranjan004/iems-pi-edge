@@ -1,0 +1,32 @@
+name: iems-knowledge
+services:
+  app:
+    build:
+      context: /home/asus/dgx-spark-playbooks/nvidia/playbook-txt2kg/assets
+      dockerfile: deploy/app/Dockerfile
+    restart: unless-stopped
+    ports: ["127.0.0.1:47822:3000"]
+    mem_limit: 3g
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    environment:
+      ARANGODB_URL: http://arangodb:8529
+      ARANGODB_DB: txt2kg
+      GRAPH_DB_TYPE: arangodb
+      OLLAMA_BASE_URL: http://host.docker.internal:11434/v1
+      OLLAMA_MODEL: llama3.2:1b
+      VLLM_MODEL: disabled
+      VECTOR_SEARCH_ENABLED: "false"
+      LANGCHAIN_TRACING_V2: "false"
+      NEXT_TELEMETRY_DISABLED: "1"
+    depends_on: [arangodb]
+  arangodb:
+    image: arangodb:3.12
+    restart: unless-stopped
+    mem_limit: 1g
+    ports: ["127.0.0.1:8529:8529"]
+    environment:
+      ARANGO_NO_AUTH: "1"
+    command: ["--rocksdb.block-cache-size=134217728", "--rocksdb.total-write-buffer-size=134217728"]
+    volumes: [graph-data:/var/lib/arangodb3]
+volumes:
+  graph-data:

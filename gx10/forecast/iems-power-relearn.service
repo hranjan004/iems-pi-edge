@@ -1,0 +1,11 @@
+[Unit]
+Description=Measured-outcome feedback and validated power/battery retraining
+[Service]
+Type=oneshot
+WorkingDirectory=/home/asus/Microgrid-UCSC/gx10/forecast
+ExecStart=/home/asus/iems/.venv/bin/python -u /home/asus/Microgrid-UCSC/gx10/forecast/recurrent.py
+Environment=OMP_NUM_THREADS=2
+Environment=OPENBLAS_NUM_THREADS=2
+MemoryMax=8G
+Nice=10
+TimeoutStartSec=18min

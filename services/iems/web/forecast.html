@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Power forecasts · Los Gatos</title>
+<style>
+*{box-sizing:border-box}body{margin:0;padding:18px;background:#fff;color:#182230;font:14px Inter,system-ui,sans-serif}
+h1{font-size:25px;margin:0 0 7px;letter-spacing:-.025em}h2{font-size:17px;margin:0;letter-spacing:-.01em}p{line-height:1.5}small,.muted{color:#667085}
+button,select{font:inherit;color:#344054;background:#fff;border:1px solid #d0d5dd;border-radius:6px;padding:8px;max-width:100%}button{cursor:pointer}
+button:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid #84adff;outline-offset:2px}
+.bar{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin:18px 0}.bar label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:#667085;min-width:0}
+.notice{border-left:3px solid #947000;padding:9px 13px;background:#fffbeb;margin:12px 0;font-size:12px;line-height:1.6}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.card{border:1px solid #e0e4ea;border-radius:10px;padding:16px;min-width:0}
+.card.expanded{grid-column:1 / -1;order:-1;border-color:#98a2b3}.card.expanded .sc-frame{height:400px}
+.card-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.card-head button{font-size:12px;flex-shrink:0}.card-head h2{color:var(--channel,#182230)}
+.meta{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:14px 0;font-size:12px;line-height:1.6}.large{font-size:27px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.facts{display:flex;gap:24px;flex-wrap:wrap;border-top:1px solid #eaecf0;border-bottom:1px solid #eaecf0;padding:13px 0;margin:12px 0 22px;font-size:12px}.facts b{display:block;font-size:18px;margin-top:4px}
+.chart-filters{border:1px solid #eaecf0;border-radius:8px;padding:12px 14px;margin:18px 0;display:flex;gap:12px 22px;flex-wrap:wrap}
+.filter-group{display:flex;gap:6px;flex-wrap:wrap;align-items:center}.filter-group>span{font-size:12px;color:#667085;margin-right:3px}
+.filter-group button{font-size:12px;padding:7px 10px;display:flex;align-items:center;gap:6px;min-height:34px}
+.filter-group button[aria-pressed="true"]{border-color:#84adff;background:#eff8ff;color:#175cd3}.filter-group button[aria-pressed="false"]{border-style:dashed;color:#667085}
+.filter-group i{width:15px;height:3px;background:var(--sw);display:inline-block}.filter-group button[data-filter="band"] i{height:10px;opacity:.25}
+.help{font-size:12px;color:#667085;margin:7px 0 20px;line-height:1.6}.model-note{font-size:11px;color:#667085;border-top:1px solid #eaecf0;padding-top:10px;line-height:1.7;margin-top:9px}
+.error{color:#a52820}details{margin-top:18px}summary{cursor:pointer;font-weight:600;padding:8px 0}a{color:#175cd3}pre{white-space:pre-wrap;font:12px system-ui}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}.metric{border-top:1px solid #e4e7ec;padding:10px 0}
+[hidden]{display:none!important}@media(max-width:800px){body{padding:12px}.grid{grid-template-columns:1fr}.chart-filters{padding:10px}.large{font-size:23px}.card{padding:12px}.card.expanded .sc-frame{height:320px}}
+@media(max-width:480px){h1{font-size:22px}.bar label{width:100%}.bar select{width:100%}.card-head h2{font-size:15px}.filter-group{gap:5px}.filter-group>span{width:100%}.facts{gap:12px 20px}.meta{gap:6px}}
+</style>
+<script src="/chart-analysis.js"></script>
+</head>
+<body>
+<h1>Power &amp; battery forecasts</h1>
+<div class="muted">Los Gatos · Next 24 hours · All times Pacific</div>
+<div id="notice" class="notice">Loading verified source time and model…</div>
+<div class="bar">
+  <label>Model <select id="view"><option value="validated">Best validated per channel</option><option value="weather-aware">Weather-aware XGBoost · experimental</option></select></label>
+  <label>Inspect time <select id="time" aria-label="Forecast inspection time"></select></label>
+  <label>Chart window <select id="horizon"><option value="recent">Forecast + recent history</option><option value="all">Forecast + full history</option><option value="future">Forecast only</option></select></label>
+  <button type="button" id="refresh">Refresh</button><span id="updated" class="muted"></span>
+</div>
+<div class="chart-filters" aria-label="Forecast chart display controls">
+  <div class="filter-group" aria-label="Line filters"><span>Show</span>
+    <button type="button" data-filter="history" aria-pressed="true"><i style="--sw:#98a2b3"></i>History</button>
+    <button type="button" data-filter="forecast" aria-pressed="true"><i style="--sw:#175cd3"></i>Forecast</button>
+    <button type="button" data-filter="upper" aria-pressed="true">Upper bound</button>
+    <button type="button" data-filter="lower" aria-pressed="true">Lower bound</button>
+    <button type="button" data-filter="band" aria-pressed="true"><i style="--sw:#175cd3"></i>Uncertainty band</button>
+  </div>
+  <div class="filter-group" aria-label="Key prediction filters"><span>Highlight</span>
+    <button type="button" data-filter="peak" aria-pressed="true">Peaks</button>
+    <button type="button" data-filter="dip" aria-pressed="true">Dips</button>
+    <button type="button" data-filter="selected" aria-pressed="true">Selected time</button>
+  </div>
+</div>
+<p class="help">Peaks and dips are the highest and lowest forecast values over the next 24 hours. Select a value card to inspect its time. Zoom to examine a shorter interval; each chart rescales to the visible values. Dashed upper and dotted lower lines outline the empirical uncertainty band. Bound cards and graph labels show the range at the inspected time.</p>
+<div id="learning" class="notice">Loading automatic learning status…</div>
+<div id="context" class="facts"></div>
+<h2>Battery outlook</h2><p class="muted">Predicted charge and measured sensor temperature · 15-minute intervals</p>
+<div id="battery-charts" class="grid"></div><p id="battery-note" class="help"></p><div id="battery-error" role="alert" class="error"></div>
+<h2 style="margin:26px 0 12px">Power outlook</h2><p class="help">Grid power retains its sign: positive means import, negative means export. The dashed vertical line marks the forecast origin.</p>
+<div id="charts" class="grid"></div><div id="error" role="alert" class="error"></div>
+<details><summary>Accuracy, training and data coverage</summary><div id="training"></div><div id="metrics" class="metrics"></div></details>
+<details><summary>Research and methods</summary><p>GPU-trained models are compared with persistence, yesterday and last-week baselines. Model selection uses a chronological validation block; uncertainty calibration and final testing use separate later blocks. A new candidate replaces the champion only after at least 1% better validation error. Replayed observations are excluded from relearning.</p><p><a href="https://arxiv.org/abs/2304.08424" target="_blank" rel="noopener">TiDE (Das et al., 2023)</a> informs the dense encoder, future-covariate decoder and residual forecast. This is a compact multichannel adaptation. <a href="https://arxiv.org/abs/1603.02754" target="_blank" rel="noopener">XGBoost (Chen & Guestrin, 2016)</a> provides the CUDA tree model. <a href="https://arxiv.org/abs/2402.19072" target="_blank" rel="noopener">TimeXer</a> and <a href="https://arxiv.org/abs/2211.14730" target="_blank" rel="noopener">PatchTST</a> were reviewed as alternatives, not implemented here.</p><p>Weather: <a href="https://open-meteo.com/en/docs/previous-runs-api" target="_blank" rel="noopener">Open-Meteo GFS previous runs</a>. Historical evaluation uses 48-hour-lead forecasts, avoiding realized future weather. Missing solar readings remain missing. Panel CT polarity is converted to consumed-power magnitude; grid sign is preserved.</p></details>
+
+<script>
+'use strict'
+const $=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))
+const clock=SeriesAnalysis.clock
+let data=null,batteryData=null
+const display={history:true,forecast:true,band:true,upper:true,lower:true,peak:true,dip:true,selected:true}
+const cards=new Map()
+function nearestIndex(times,time){
+ if(!times?.length)return -1
+ const target=Number.isFinite(time)?time:Date.parse(times[0])
+ return times.reduce((best,t,i)=>Math.abs(Date.parse(t)-target)<Math.abs(Date.parse(times[best])-target)?i:best,0)
+}
+function selectedIndex(series){return nearestIndex(series.forecast_times,Date.parse($('time').value))}
+function updateTimes(series){
+ const selected=Date.parse($('time').value),times=series.forecast_times||[],index=nearestIndex(times,selected)
+ $('time').innerHTML=times.map(t=>'<option value="'+esc(t)+'">'+esc(clock(t))+' PT</option>').join('')
+ if(index>=0)$('time').value=times[index]
+}
+function inspectTime(t){
+ const series=data||batteryData;if(!series)return
+ const index=nearestIndex(series.forecast_times,t);if(index<0)return
+ $('time').value=series.forecast_times[index];render();renderBattery()
+}
+function points(values,times,lower,upper){return (times||[]).map((t,i)=>({t:Date.parse(t),v:values?.[i],lo:lower?.[i],hi:upper?.[i]}))}
+function renderGroup(target,series,battery){
+ const host=$(target),alive=new Set()
+ series.channels.forEach((c,index)=>{
+  const key=target+':'+c.name;alive.add(key)
+  let state=cards.get(key)
+  if(!state){
+   const el=document.createElement('section');el.className='card prediction-card';el.dataset.channel=c.name
+   el.innerHTML='<div class="card-head"><h2></h2><button type="button" class="pred-expand" aria-pressed="false">Enlarge</button></div><div class="meta"></div><div class="prediction-plot"></div><div class="model-note"></div>'
+   host.appendChild(el);state={el,chart:null};cards.set(key,state)
+   el.querySelector('.pred-expand').onclick=()=>{
+    const expanded=!el.classList.contains('expanded');el.classList.toggle('expanded',expanded)
+    const button=el.querySelector('.pred-expand');button.textContent=expanded?'Compact':'Enlarge';button.setAttribute('aria-pressed',String(expanded))
+    if(expanded)el.scrollIntoView({block:'start',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})
+   }
+  }
+  const el=state.el,color=battery?(c.unit==='%'?'#087e8b':'#8a5a7a'):'#175cd3'
+  el.style.setProperty('--channel',color);el.querySelector('h2').textContent=c.name
+  el.querySelector('.pred-expand').setAttribute('aria-label',(el.classList.contains('expanded')?'Compact ':'Enlarge ')+c.name)
+  if(c.unavailable){
+   if(state.chart){state.chart.destroy();state.chart=null}
+   el.querySelector('.meta').textContent=c.unavailable;el.querySelector('.model-note').textContent=''
+   return
+  }
+  const i=selectedIndex(series),unit=battery?c.unit:'W',fc=battery?c.forecast:c.forecast_w,past=battery?c.history:c.history_w,lo=battery?c.lower:c.lower_w,hi=battery?c.upper:c.upper_w
+  const selected=fc?.[i],selectedTime=Date.parse(series.forecast_times?.[i])
+  const latest=battery?series.latest?.values?.[c.unit==='%'?'battery_soc':'battery_temperature']:null
+  const energy=Number.isFinite(c.energy_kwh)?c.energy_kwh.toFixed(2)+' kWh / 24h':'Energy unavailable'
+  const imports=c.name==='Grid Power'&&Number.isFinite(c.import_kwh)&&Number.isFinite(c.export_kwh)?'<br><small>'+c.import_kwh.toFixed(2)+' kWh import · '+c.export_kwh.toFixed(2)+' kWh export</small>':''
+  el.querySelector('.meta').innerHTML='<div><small>At inspected time</small><div class="large">'+esc(SeriesAnalysis.format(selected,unit))+'</div><small>'+esc(clock(selectedTime))+' PT</small></div><div>'+(battery?'Latest measured: '+esc(SeriesAnalysis.format(latest,unit))+(series.latest?.ts?'<br><small>'+esc(clock(series.latest.ts))+' PT</small>':''):energy+imports)+'</div>'
+  const history=points(past,series.history_times).map(p=>({...p,kind:'Observed history'})),forecast=points(fc,series.forecast_times,lo,hi).map(p=>({...p,kind:'Forecast'}))
+  const origin=Date.parse(series.origin),horizon=$('horizon').value
+  const first=history.find(p=>Number.isFinite(p.t))?.t??origin
+  const start=horizon==='all'?first:horizon==='future'?origin:Math.max(first,origin-6*3600000)
+  const end=forecast.at(-1)?.t??origin+24*3600000
+  const config={name:c.name,unit,color,start,end,origin,selectedTime,rangeKey:horizon,minSpan:45*60000,features:forecast,inspection:(display.history?history:[]).concat(display.forecast?forecast:[]),includeZero:!battery,bounds:unit==='%'?[0,100]:null,band:display.band,uncertainty:true,boundLines:{upper:display.upper,lower:display.lower},highlights:{peak:display.peak,dip:display.dip,selected:display.selected},onSelect:inspectTime,
+   tracks:[{id:'history',color:'#98a2b3',width:1.5,points:history,visible:display.history},{id:'forecast',color,width:2.4,points:forecast,band:true,visible:display.forecast}]}
+  const plot=el.querySelector('.prediction-plot')
+  if(!state.chart)state.chart=new SeriesAnalysis.Chart(plot,config);else state.chart.update(config)
+  const mae=battery?c.test_mae:c.test_mae_w,errorUnit=battery?(unit==='%'?'percentage points':'°F'):'W'
+  el.querySelector('.model-note').textContent='Model: '+(c.model||'Unavailable')+' · Test MAE '+(Number.isFinite(mae)?mae.toFixed(battery?2:0)+' '+errorUnit:'unavailable')+' · '+(Number.isFinite(c.test_coverage)?'Band test coverage '+Math.round(c.test_coverage*100)+'%':'Uncalibrated experimental view')
+ })
+ for(const [key,state] of cards)if(key.startsWith(target+':')&&!alive.has(key)){state.chart?.destroy();state.el.remove();cards.delete(key)}
+}
+function clearGroup(target){for(const [key,state] of cards)if(key.startsWith(target+':')){state.chart?.destroy();state.el.remove();cards.delete(key)}}
+function render(){
+ if(!data)return
+ const i=selectedIndex(data),w=data.weather||{},f=(v,suffix)=>Number.isFinite(v)?Math.round(v)+suffix:'Unavailable'
+ $('context').innerHTML=[['Forecast temperature',f(Number.isFinite(w.temperature_2m?.[i])?w.temperature_2m[i]*9/5+32:null,'°F')],['Cloud cover',f(w.cloud_cover?.[i],'%')],['Solar irradiance',f(w.shortwave_radiation?.[i],' W/m²')],['Sun elevation',f(data.sun_elevation_deg?.[i],'°')]].map(([k,v])=>'<div><small>'+k+'</small><b>'+v+'</b></div>').join('')
+ renderGroup('charts',data,false)
+}
+function renderBattery(){
+ if(!batteryData)return
+ renderGroup('battery-charts',batteryData,true)
+ $('battery-note').textContent='Forecast generated '+clock(batteryData.generated_at)+'. '+(batteryData.notes||[]).join(' ')+' '+(batteryData.feedback_note||'')
+}
+async function loadBattery(){try{
+ const response=await fetch('/api/battery-forecast'),d=await response.json();if(!response.ok)throw Error(d.detail||'Battery predictions unavailable')
+ batteryData=d;$('battery-error').textContent='';if(!data)updateTimes(d);renderBattery()
+}catch(e){batteryData=null;clearGroup('battery-charts');$('battery-note').textContent='';$('battery-error').textContent='Battery forecasts unavailable: '+e.message}}
+let loadVersion=0
+async function load(){
+ const version=++loadVersion
+ try{
+  const response=await fetch('/api/power-forecast?view='+encodeURIComponent($('view').value)),d=await response.json();if(version!==loadVersion)return
+  if(!response.ok)throw Error(d.detail||d.error||'Forecast unavailable')
+  data=d;$('error').textContent='';updateTimes(d)
+  $('notice').textContent=(d.mode==='replay'?'REPLAY SOURCE DATE — ':d.mode==='live'?'LIVE WEB SOURCES — ':'')+clock(d.origin)+'. '+(d.weather_source||'')+'. '+(d.view==='weather-aware'?'Experimental context model; may be less accurate than the validated selection.':'Best model chosen separately for each channel.')
+  $('updated').textContent='Refreshed '+new Date().toLocaleTimeString('en-US',{timeZone:'America/Los_Angeles'})+' PT';render();renderBattery()
+ }catch(e){if(version!==loadVersion)return;data=null;clearGroup('charts');$('context').innerHTML='';$('error').textContent=e.message;$('notice').textContent='Forecast unavailable. Previous curves are hidden until data can be verified.';if(batteryData){updateTimes(batteryData);renderBattery()}}
+}
+async function status(){try{const r=await fetch('/api/power-status');if(!r.ok)return;const s=await r.json(),m=s.model,d=s.data;const cycle=s.recurrent,fb=s.feedback;const stage=cycle?.status==='running'?cycle.stage:cycle?.status||'waiting';$('learning').textContent='Automatic learning · Every 20 minutes · '+stage+(cycle?.completed_at?' · Last cycle '+clock(cycle.completed_at):'')+'. Power and battery candidates replace deployed models only after better validation. '+(fb?'Matched actual intervals: '+fb.channels.reduce((n,c)=>n+c.matched_intervals,0)+'. Error corrections wait for 24 completed observations per channel and model version.':'');$('training').innerHTML='<p><b>'+esc(s.training?.status)+' · '+esc(s.training?.stage||'GPU training')+'</b><br>Trained on '+esc(m.device)+' · '+d.raw_egauge_rows.toLocaleString()+' source rows · '+esc(d.start)+' to '+esc(d.end)+'<br>Training cutoff '+esc(m.train_end)+' · Test '+esc(m.test_range.join(' to '))+'<br>Checks for new original archive and authenticated web observations every 20 minutes. Replayed samples do not count as new evidence.</p>';$('metrics').innerHTML=m.test_metrics.map((x,j)=>'<div class="metric"><b>'+esc(x.channel)+'</b><p>'+Math.round(x.mae_w)+' W MAE · '+Math.round(x.rmse_w)+' W RMSE<br>Daily baseline '+Math.round(m.test_baselines.daily[j].mae_w)+' W MAE<br>Weather-aware model '+Math.round(m.test_baselines.xgboost[j].mae_w)+' W MAE</p></div>').join('')}catch(e){}}
+
+document.querySelectorAll('[data-filter]').forEach(button=>button.onclick=()=>{
+ const key=button.dataset.filter;display[key]=!display[key];button.setAttribute('aria-pressed',String(display[key]));render();renderBattery()
+})
+$('time').onchange=()=>{render();renderBattery()}
+$('horizon').onchange=()=>{render();renderBattery()}
+$('view').onchange=load
+$('refresh').onclick=()=>{load();loadBattery();status()}
+load();loadBattery();status();setInterval(()=>{load();loadBattery()},60000);setInterval(status,60000)
+function notifyHeight(){if(parent!==window)parent.postMessage({type:'iems-forecast-height',height:Math.ceil(document.body.scrollHeight)+20},location.origin)}
+if(window.ResizeObserver)new ResizeObserver(notifyHeight).observe(document.body)
+</script>
+</body>
+</html>

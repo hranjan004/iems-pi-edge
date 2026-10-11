@@ -1,0 +1,12 @@
+const {test}=require('node:test'), assert=require('node:assert/strict')
+const m=require('./readiness')
+const now=Date.now(), stamp=new Date(now).toISOString()
+function base(){return {checked_at:stamp,sources:Object.fromEntries(['weather','alerts','outages','psps'].map(k=>[k,{status:'ok',last_success:stamp,data:k==='weather'?{high_f:70,max_gust_mph:8}:k==='outages'?{updated_at:stamp,los_gatos_customers:0,county_customers:0}:k==='psps'?[{date:new Date(now).toLocaleDateString('en-US',{timeZone:'America/Los_Angeles',month:'2-digit',day:'2-digit',year:'numeric'}),levels:[]}]:[]}]))}}
+test('healthy feeds do not fabricate a warning',()=>{m._setState(base());assert.equal(m.snapshot(now).status,'monitor')})
+test('local outage prioritizes preparation',()=>{const s=base();s.sources.outages.data.los_gatos_customers=4;m._setState(s);assert.equal(m.snapshot(now).status,'prepare')})
+test('stale outage is unknown, never all clear',()=>{const s=base();s.sources.outages.data.updated_at=new Date(now-3600000).toISOString();m._setState(s);assert.equal(m.snapshot(now).status,'unknown')})
+test('failed sources retain history but never use old normal values',()=>{const s=base();s.sources.weather.status='error';m._setState(s);assert.equal(m.snapshot(now).sources.weather.usable,false);assert.equal(m.snapshot(now).status,'unknown')})
+test('wind and PSPS trigger readiness',()=>{const s=base();s.sources.weather.data.max_gust_mph=40;m._setState(s);assert.equal(m.snapshot(now).status,'prepare');s.sources.weather.data.max_gust_mph=5;s.sources.psps.data[0].levels=['watch'];m._setState(s);assert.equal(m.snapshot(now).status,'prepare')})
+test('county outage is contextual, not a home outage',()=>{const s=base();s.sources.outages.data.county_customers=52;m._setState(s);assert.equal(m.snapshot(now).status,'monitor');assert(m.snapshot(now).recommendations.some(r=>r.action==='Watch nearby outages'))})
+test('malformed upstream responses rejected',()=>{for(const k of ['weather','alerts','outages','psps']) assert.throws(()=>m.parse(k,{}))})
+test('DISPLAY rows do not count as outages',()=>{const d=m.parse('outages',{current_outage_last_upload_time:stamp,results:[{level:'county',display:'santa clara',value:[{city:'los gatos',outage_type:'DISPLAY',count:0},{city:'san jose',outage_type:'CURRENT',count:52}]}]});assert.equal(d.los_gatos_customers,0);assert.equal(d.county_customers,52)})

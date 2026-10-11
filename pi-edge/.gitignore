@@ -1,0 +1,30 @@
+# Site specifics never enter the repository
+.env
+*.env
+!*.env.example
+pi/config/site.yaml
+pi/config/ha_token*
+cloud/.env
+
+# Model artifacts are pulled from the registry, not committed
+*.onnx
+*.pt
+*.joblib
+models/
+
+# Local data and benchmark output
+data/
+bench_results/
+*.sqlite
+*.db
+
+# Python
+__pycache__/
+*.pyc
+.venv*/
+
+# Editors and OS
+.DS_Store
+.idea/
+.vscode/
+.pytest_cache/
