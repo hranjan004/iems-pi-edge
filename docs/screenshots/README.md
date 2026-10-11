@@ -109,3 +109,71 @@ Each preset question was asked in a fresh chat. Nemotron 3.5 Lightning, running 
 
 **Which loads could I defer to cut the next peak period?**
 ![Ask: deferrable loads](detail/ask_06_which_loads_could_i_defer_to_cut_the_nex.png)
+
+## System map walk: from the GX10 to one appliance
+
+The system map is a verified graph of the deployment: 73 nodes and 103 verified links. Each step below selects one node. The map highlights that node's connections, and the inspector shows its live evidence. The `_full` images show the whole page with every highlighted link.
+
+| Step | Map | Node detail |
+|---|---|---|
+| Overview | ![Overview](sysmap/map_00_overview.png) | ![Overview, full page](sysmap/map_00_overview_full.png) |
+| 1 · GX10 / NVIDIA GB10 (hardware) | ![GX10](sysmap/map_01_gx10_nvidia_gb10.png) | ![GX10 detail](sysmap/map_01_gx10_nvidia_gb10_detail.png) |
+| 2 · Authenticated web collector (service) | ![Web collector](sysmap/map_02_authenticated_web_collector.png) | ![Web collector detail](sysmap/map_02_authenticated_web_collector_detail.png) |
+| 3 · eGauge18646 (meter) | ![eGauge](sysmap/map_03_egauge18646.png) | ![eGauge detail](sysmap/map_03_egauge18646_detail.png) |
+| 4 · Panel1 (HVAC) (meter channel) | ![Panel1](sysmap/map_04_panel1_hvac.png) | ![Panel1 detail](sysmap/map_04_panel1_hvac_detail.png) |
+| 5 · heat_pump (appliance, OFF) | ![Heat pump](sysmap/map_05_heat_pump.png) | ![Heat pump detail](sysmap/map_05_heat_pump_detail.png) |
+| 6 · solar_pump (appliance, OFF) | ![Solar pump off](sysmap/map_06_solar_pump.png) | ![Solar pump off detail](sysmap/map_06_solar_pump_detail.png) |
+| 7 · solar_pump (appliance, **ON**, 250 W, confidence 0.95) | ![Solar pump on](sysmap/map_07_solar_pump_on.png) | ![Solar pump on detail](sysmap/map_07_solar_pump_on_detail.png) |
+| 8 · dishwasher (appliance, ON, low confidence 0.05) | ![Dishwasher on](sysmap/map_08_dishwasher_on.png) | ![Dishwasher on detail](sysmap/map_08_dishwasher_on_detail.png) |
+
+Full-page captures for steps 1 to 6: [GX10](sysmap/map_01_gx10_nvidia_gb10_full.png), [web collector](sysmap/map_02_authenticated_web_collector_full.png), [eGauge](sysmap/map_03_egauge18646_full.png), [Panel1](sysmap/map_04_panel1_hvac_full.png), [heat_pump](sysmap/map_05_heat_pump_full.png), [solar_pump](sysmap/map_06_solar_pump_full.png).
+
+## Appliances ON
+
+The Appliances tab while the solar pump and the dishwasher were ON. Each card shows the decision and its confidence.
+
+![Appliances tab with ON appliances](on/on_01_appliances_tab.png)
+
+| Solar pump · ON · 95% | Dishwasher · ON · 5% |
+|---|---|
+| ![Solar pump card](on/on_03_solar_pump_card.png) | ![Dishwasher card](on/on_04_dishwasher_card.png) |
+
+## Weather-aware XGBoost forecasts (experimental)
+
+The Predictions tab has a second model view. It is a CUDA XGBoost model that adds the live Open-Meteo GFS forecast (temperature, cloud cover, irradiance and wind) as inputs for every channel. It is shown beside the validated per-channel selection and is labelled uncalibrated, so it has no uncertainty bands. Each footer gives its test error.
+
+![Weather-aware view header](weather_aware/xgb_00_header.png)
+
+| Battery state of charge | Battery temperature |
+|---|---|
+| ![SOC](weather_aware/xgb_01_battery_state_of_charge.png) | ![Battery temperature](weather_aware/xgb_02_battery_temperature.png) |
+
+| Panel 1 (HVAC) | Panel 2 (H2O) |
+|---|---|
+| ![Panel 1](weather_aware/xgb_03_panel1_hvac.png) | ![Panel 2](weather_aware/xgb_04_panel2_h2o.png) |
+
+| Panel 3 (Kitchen) | Grid power |
+|---|---|
+| ![Panel 3](weather_aware/xgb_05_panel3_kitchen.png) | ![Grid](weather_aware/xgb_06_grid_power.png) |
+
+| Shop | Generac generator |
+|---|---|
+| ![Shop](weather_aware/xgb_07_shop.png) | ![Generac](weather_aware/xgb_08_generac_power.png) |
+
+| Solar PV |
+|---|
+| ![Solar PV](weather_aware/xgb_09_solar_pv.png) |
+
+Full pages: [weather-aware view](weather_aware/xgb_00_full_page.png) and [validated view](extra/predictions_validated_full_page.png), for side-by-side comparison.
+
+## More of the system
+
+| Kafka topics | Kafka broker |
+|---|---|
+| ![Kafka topics](extra/kafka_topics.png) | ![Kafka brokers](extra/kafka_brokers.png) |
+
+| IEMS backend API (FastAPI) | Appliance forecaster, full page |
+|---|---|
+| ![Backend API](extra/backend_api_docs.png) | ![Forecaster full](extra/appliance_forecaster_full.png) |
+
+The [General tab as a full page](extra/general_tab_full_page.png) shows every card, chart and recommendation in one image.
