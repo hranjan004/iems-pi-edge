@@ -256,6 +256,15 @@ The planner enumerates permutations with dynamic programming. When the readiness
 
 ---
 
+## Team
+
+| Name | GitHub | Email |
+|---|---|---|
+| Harsh Ranjan | [hranjan004](https://github.com/hranjan004) | hranjan@ucsc.edu |
+| Tora Matsuda | [T0RAA](https://github.com/T0RAA) | tjmatsud@ucsc.edu |
+
+---
+
 ## Built with
 
 NVIDIA GB10 / ASUS Ascent GX10 · NVIDIA Nemotron 3.5 Lightning · NVIDIA NeMo AutoModel · LoRA / PEFT · vLLM · llama.cpp (GGUF Q8_0) · Ollama · NVIDIA txt2kg · PyTorch · ONNX Runtime · XGBoost (CUDA) · LightGBM · AnyLog · Apache Kafka · PostgreSQL · ArangoDB · Docker · Node.js · FastAPI · eGauge · Solar Assistant · Open-Meteo · NWS · PG&E outage data

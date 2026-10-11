@@ -157,10 +157,10 @@ Credentials, `.env` files, tokens, private keys, raw meter exports, training dat
 
 ## Contributors
 
-| Name | Email |
-|---|---|
-| Harsh Ranjan | hranjan@ucsc.edu |
-| | tjmatsud@ucsc.edu |
+| Name | GitHub | Email |
+|---|---|---|
+| Harsh Ranjan | [hranjan004](https://github.com/hranjan004) | hranjan@ucsc.edu |
+| Tora Matsuda | [T0RAA](https://github.com/T0RAA) | tjmatsud@ucsc.edu |
 
 ## Contact
 
