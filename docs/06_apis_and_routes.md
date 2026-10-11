@@ -458,3 +458,23 @@ Three argument traps. `queryWithIncrement` times are raw strings, and quoting
 them yields an empty range. `getPolicyChildren` requires `whereCond`, and
 omitting it looks like an empty graph rather than an error. And `whereCond`
 values containing spaces need double quotes, as in `name = "Panel1 (HVAC)"`.
+
+---
+
+## Additional routes on the GX10
+
+These run beside the routes above on the GX10. The dashboard routes are served by the same `server.js`.
+
+| route | served by | returns |
+|---|---|---|
+| `GET /api/power-forecast?view=validated` or `?view=weather-aware` | dashboard, proxied to the forecast socket | 24 h forecasts per channel with bands, model and test metrics |
+| `GET /api/power-status`, `GET /api/power-accuracy` | dashboard | training status and champion, and scores of issued forecasts against completed intervals |
+| `GET /api/battery-forecast` | dashboard | SOC and battery temperature forecasts |
+| `GET /api/dss-plan` | dashboard | the smart DSS schedule for optional heavy loads |
+| `GET /api/readiness` | dashboard | source status, PG&E publication times, scope and recommendations |
+| `GET /api/system-map` | dashboard | the verified graph: nodes, edges with evidence, inferred triples, GPU telemetry |
+| `GET /api/node-detail?id=<node>&hours=24` | dashboard | facts, charts and connections for one node of the system map |
+| `GET /api/nilm`, `GET /api/nilm-24h` | dashboard | the latest and the 24 h NILM rows |
+| `GET /health`, `POST /v1/chat/completions` on :8011 | llama.cpp `nilm-nemotron` | the fine-tuned Nemotron, OpenAI-compatible, model `nilm` |
+| `GET /api/health`, `/api/state`, `/api/forecast` on :8765 | appliance forecaster (`~/iems`) | per-appliance 24 h forecasts, trainer state, champion |
+| `/status`, `/speed`, `/jump`, `/inject`, `/clear` on :8099 | replay producer (opt-in) | demo controls for the replayed feed |

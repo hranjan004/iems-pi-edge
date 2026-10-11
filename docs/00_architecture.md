@@ -248,3 +248,46 @@ and 2.1.2608 ships that intent upstream as
 `set license where activation_key = $LICENSE_KEY` while no longer assigning
 `!license_key` in `set_params.al`. Keeping the mount would feed the licence step
 an undefined variable.
+
+---
+
+## The GX10 deployment (2026-10-11)
+
+The same production code runs on one ASUS Ascent GX10 (NVIDIA GB10, 20 Arm cores, 128 GB unified memory shared by CPU and GPU), with these additions.
+
+```
+ eGauge (10 s) ─┐  iems-web-collector                    Open-Meteo, NWS, PG&E
+ Solar Assistant┘  (user systemd, read-only HTTPS)              │
+        │                                                       │
+        ▼                                                       ▼
+ AnyLog master + operator1 ──▶ PostgreSQL            readiness monitor (dashboard)
+        │
+        ├──▶ iems-inference (30 s) ──▶ nilm-nemotron :8011 (llama.cpp, Nemotron GGUF Q8_0)
+        │          │                     └─ per-head fallback: BiLSTM ONNX
+        │          ▼
+        │     nilm_disaggregated
+        │
+        ├──▶ iems-power-forecast (Unix socket) ◀── iems-power-relearn.timer (20 min, GPU)
+        ├──▶ appliance forecaster :8765 (~/iems, transformer + LightGBM + climatology)
+        │
+        ▼
+ iems-dashboard :47821 ── General · Predictions · System map · Weather · Appliances · Anomalies · Ask
+ iems-backend :8009 ── cycle, DSS, Ask ──▶ Ollama :11434 (Nemotron 3.5 Lightning)
+ iems-app :3001/:8000 (AnyLog Remote GUI + IEMS plugin)   kafka-ui :8080   txt2kg :47822
+```
+
+| piece | port | notes |
+|---|---|---|
+| iems-dashboard | 47821 | Node, `services/iems/web/server.js`; Predictions is `/forecast-view`, System map is `/system-view` |
+| iems-backend | 8009 | FastAPI; `/iems/cycle`, `/iems/health`, Ask |
+| nilm-nemotron | 8011 | systemd unit, llama.cpp `llama-server`, alias `nilm`, 3 slots |
+| Ollama | 11434 | Nemotron 3.5 Lightning, kept loaded, stopped while Nemotron trains |
+| iems-power-forecast | Unix socket | proxied by the dashboard as `/api/power-forecast`, `/api/power-status`, `/api/power-accuracy`, `/api/battery-forecast` |
+| appliance forecaster | 8765 | `~/iems`, outside this repository |
+| iems-app | 3001, 8000 | AnyLog Remote GUI with the IEMS plugin |
+| kafka, kafka-ui | 9092, 9094, 8080 | topic `egauge-energy` |
+| AnyLog master, operator1 | 32048 to 32149, 1883 | `anylog-init` sidecar reapplies the operator setup on start |
+| txt2kg | 47822 | knowledge graph builder for the system map, ArangoDB on localhost |
+| replay-producer | 8099 | opt-in Compose profile `replay`, never alongside the web collectors |
+
+Memory is the shared resource. The live Nemotron server takes about 34 GB and the Ollama chat model about 26 GB. Fine-tuning the 30B model peaks near 119 GB while loading, so both are stopped during training, and the dashboards run on the BiLSTM fallback until the new model is deployed.

@@ -124,3 +124,11 @@ PYTHONPATH=services .venv-training/bin/python3 -m unittest iems.tests.test_pipel
 ```
 
 Both suites are fast (no AnyLog or Ollama calls — anything that would hit the network is either stubbed or tests pure config / pure-function behavior, and the one end-to-end test loads the ONNX model directly without a live AnyLog round trip), so there's no reason to skip either.
+
+## The GX10 suites
+
+`gx10/tests/` covers the GX10 scripts and services: the replay producer, the Ollama bridge, dataset building, ONNX export with inlined weights, the round monitor (rules, agent replies, budget guard, template boosts), the round comparison and deploy scripts (`test_nemotron_deploy.py`), the LR schedule, the Compose and config files, and a check that no secret is committed in files git would commit. `services/iems/tests/test_nemotron_engine.py` covers the Nemotron prompt, the answer parser and the fallback. `gx10/forecast/` has its own unittest files for the forecaster, the battery model, the device clients, feedback, node detail and the smart DSS.
+
+```bash
+bash gx10/scripts/run_tests.sh       # 53 passed, 1 skipped on 2026-10-11
+```

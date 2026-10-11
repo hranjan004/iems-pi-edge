@@ -1,5 +1,10 @@
 # Microgrid IEMS — Detailed Setup & Operations Guide
 
+> This guide is for the production deployment at the house. The single-box
+> ASUS Ascent GX10 build, with Nemotron, the forecasters and the system map, is
+> set up with [`gx10/README.md`](gx10/README.md) and described in
+> [`docs/10_models_and_training.md`](docs/10_models_and_training.md).
+
 This document is the long-form companion to `INSTALL.md`. Read `INSTALL.md`
 first if you have never deployed this system before; come here when you
 need to understand a component in depth, run a non-default ingestion path,

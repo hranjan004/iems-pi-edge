@@ -11,6 +11,14 @@ producer emits exactly the messages the real eGauge producer emits, so Kafka, th
 AnyLog operator, the inference loop and every dashboard run the production code
 unchanged.
 
+> **Since 2026-10-11** the live feed is the authenticated eGauge and Solar
+> Assistant web collectors (`gx10/forecast/web_collector.py`), and the replay
+> producer is an opt-in Compose profile (`--profile replay`) that is never run
+> beside them. The appliance decisions come from the fine-tuned Nemotron (see
+> "Nemotron as the NILM engine"). Every model is described in
+> [`docs/10_models_and_training.md`](../docs/10_models_and_training.md), and the
+> live system is shown in [`docs/screenshots/`](../docs/screenshots/README.md).
+
 ```
  ┌────────────────────── Phase A: at home, on the tailnet ──────────────────────┐
  │                                                                              │

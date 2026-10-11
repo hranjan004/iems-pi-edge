@@ -17,6 +17,10 @@ for latency/instability).
 > with a step by step setup from first boot to demo. Production at the house is
 > unchanged and still described below.
 
+> **Since 2026-10-11** the live feed on the GX10 is the authenticated eGauge and
+> Solar Assistant web collectors, the replay is an opt-in demo profile, and the
+> appliance decisions come from a fine-tuned Nemotron (section 7).
+
 ---
 
 ## 1. Data pipeline (streaming)
@@ -264,3 +268,21 @@ Useful endpoints: `:47821/api/nilm`, `:47821/api/storage`, `:8000/iems/storage`,
   eGauge and solar telemetry overlap by ~2 weeks.
 - **Battery SOC is modeled**, not metered (charged by solar surplus, 10% floor).
 - Predictions are best-estimate over a trailing window, not an instantaneous measurement.
+
+---
+
+## 7. The GX10 intelligence layer (2026-10-11)
+
+The GX10 build keeps everything above and adds a learning layer on the GB10. The full reference is [`docs/10_models_and_training.md`](docs/10_models_and_training.md), and the screenshots are in [`docs/screenshots/`](docs/screenshots/README.md).
+
+**Live data.** Since 2026-10-11 the readings come from authenticated, read-only web collectors on the GX10: eGauge every 10 s and Solar Assistant every 30 s. They publish into the same AnyLog tables. The replay producer is now an opt-in Compose profile and is stopped while the collectors publish, so replayed and real readings never mix.
+
+**NILM engine.** NVIDIA Nemotron 3.5 Lightning 30B-A3B, a hybrid Mamba-2 and mixture-of-experts model with about 3B active parameters, makes the live ON/OFF decisions for all 22 appliances. It was fine-tuned with LoRA (rank 16) in NVIDIA NeMo AutoModel to reproduce the gated BiLSTM described in section 2. That is knowledge distillation from a teacher that itself rests on physics labels and rolling validation. Training ran in recurrent rounds: each round mined the windows the previous one got wrong and boosted the weakest appliances, and a local Nemotron agent decided whether to continue. Round 2 agrees with the teacher on 0.9191 of held-out windows (round 1 0.8214); Panel 1 0.938, Panel 2 0.945, Panel 3 0.906. The model is served as a GGUF Q8_0 by llama.cpp on :8011, about 1.5 s per panel, and any appliance it does not answer falls back to the BiLSTM.
+
+**BiLSTM, retrained.** The per-panel BiLSTM models were retrained on the GB10 over the relabelled March to October history (physics labeller v2, 1,956,739 timestamps), with rolling walk-forward validation, and remain the teacher and the fallback.
+
+**Forecasting.** Each of seven power channels gets a 24 h forecast in 15 min steps. The model is chosen per channel on chronological validation from a TiDE-inspired network, CUDA XGBoost, an XGBoost/daily blend and seasonal baselines. Bands come from calibration residuals. A separate model forecasts battery SOC and temperature. Both relearn every 20 minutes and are promoted only on at least 1% better validation. A second, per-appliance forecaster on the GX10 predicts the probability each appliance is on over the next 24 h, from an ensemble of a transformer, LightGBM and climatology.
+
+**Decisions and readiness.** `smart_dss.py` schedules the dishwasher, washer and dryer into the cheapest feasible daytime windows, keeping predicted SOC at or above 30%. The readiness monitor reads NWS, PG&E outage and PSPS data and Open-Meteo, and switches the advice to keeping the battery full when outage risk rises.
+
+**Ask and the system map.** The Ask tab answers questions from live telemetry with Nemotron in Ollama, and checks its own ON list against measured panel power. The System map tab is a verified graph of the deployment (73 nodes, 103 verified links) built with NVIDIA txt2kg and ArangoDB. Any node can be opened down to a single appliance.

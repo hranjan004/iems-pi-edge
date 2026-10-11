@@ -82,3 +82,8 @@ from iems.load.shedding import rank_shed_candidates, ShedPlan
 def _get_shedding(current_states, target_w, mode) -> ShedPlan:
     return rank_shed_candidates(current_states, target_w, mode)
 ```
+
+
+## The smart DSS on the GX10
+
+`gx10/forecast/smart_dss.py` adds a forecast-driven schedule beside the rule tree above. It places the optional heavy cycles (dishwasher, washer, dryer) into start times that minimise the added grid import cost under the time of use tariff. The inputs are the grid forecast's upper bound, predicted PV and the configured cycle energy. The constraints are daytime windows from 8 AM to 9 PM, one heavy cycle at a time, washer before dryer within two hours, and predicted SOC at or above 30%. Job orders are enumerated and each is solved by dynamic programming. In readiness prepare mode the optional schedule is suppressed. The dollar figures are tariff scenarios for configured cycles, not measured savings. Details are in [`../../10_models_and_training.md`](../../10_models_and_training.md), section 7.

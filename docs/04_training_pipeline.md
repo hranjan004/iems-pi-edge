@@ -425,3 +425,22 @@ curl -s http://127.0.0.1:32149 \
 Check 3 should return one row per head in the contract, 22 at present, each with
 a similar count. A head missing from that list is a head the model is not
 emitting, whatever the norm file claims.
+
+---
+
+## Training on the GX10 (2026-10-11)
+
+On the GX10 the same pipeline runs on the GB10 GPU and then continues into the Nemotron fine-tune. One resumable driver, `gx10/nemotron/run_on_gx10.sh` → `box_pipeline.sh`, runs every stage and marks each one done in `~/nilm/state/`.
+
+| stage | what it does | notes |
+|---|---|---|
+| 10_dataset | `gx10/scripts/build_dataset.py` merges the March to August archive with Pat's August to October export onto the 6 s grid | same resampling rule as the runtime |
+| 20_relabel | `physical_labeler_v2.py` over the whole history | 1,956,739 timestamps |
+| 30_bilstm | `train_rolling.py` per panel with `DEVICE=cuda`, 6 epochs first stage, 3 per rolling stage, then `export_physical.py` | TorchScript exporter, batch-64 check |
+| 40_sft | `gx10/nemotron/build_sft.py`: the gated BiLSTM labels 2,000 windows per panel as chat JSONL | the prompt module is shared with inference |
+| 50_rounds | `recurrent_rounds.py`: LoRA rounds in NeMo AutoModel, merge, vLLM scoring, hard-example mining, Nemotron agent monitor | about 15 s per step on the GB10 |
+| 60_gguf | the merged model to GGUF Q8_0 for llama.cpp | 33.6 GB |
+
+Do not run `gen_norm_physical.py` after `train_rolling.py`. It replaces the 18 feature norm file with a 14 feature one.
+
+The production swap after training is `gx10/nemotron/deploy_round.sh` (merge, convert, swap, score). Every model, loss, schedule and result is documented in [`10_models_and_training.md`](10_models_and_training.md).

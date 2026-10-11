@@ -45,3 +45,8 @@ def _irradiance_label(wm2):
 ```
 
 If Open-Meteo is unreachable, `_weather_defaults()` returns a sane mid-day stub so the rest of the cycle still runs.
+
+
+## Weather on the GX10
+
+Beyond this fetcher, the GX10 uses weather in three more places. The Weather tab shows temperature and solar irradiance, history and forecast. The readiness monitor adds NWS alerts, PG&E outage and PSPS feeds to the Open-Meteo forecast. The power forecasts take GFS temperature, cloud cover, shortwave irradiance and wind as future covariates. In backtests those come from the Open-Meteo previous-runs archive, as issued 48 h before valid time, so no realised future weather leaks in.

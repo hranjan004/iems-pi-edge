@@ -35,6 +35,9 @@ box into the repository (the `gx10` branch), see `09_gx10.md` for the list.
 | `07_streaming_storage.md` | Kafka, MQTT, AnyLog, Postgres, partitions, ingestion triage |
 | `08_scripts_and_shells.md` | every deploy and operations script, and which machine it runs on |
 | `09_gx10.md` | the ASUS Ascent GX10 target, what changed in the repository for it, and the 2026-10-10 sync from Pat's box |
+| `10_models_and_training.md` | every model on the GX10 (physics labeller, BiLSTM, Nemotron NILM, power and battery forecasts, appliance forecaster, DSS, readiness, Ask, system map), how each is trained and validated, the formulas and the 2026-10-11 results |
+| `PROJECT_STORY.md` | the project story: inspiration, what it does, how it was built, challenges, lessons and references |
+| `screenshots/README.md` | the gallery of the live GX10 system, captured 2026-10-11 |
 
 ### Older documents in this folder
 

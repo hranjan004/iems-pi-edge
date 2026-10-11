@@ -54,3 +54,7 @@ Solar history uses the viewer-accessible Grafana query proxy because this instal
 Replay is stopped and is now an opt-in Compose profile (`replay`). Do not start it while the web collector publishes to the same tables. Existing General-tab records from before the switch may be replay; forecast context exclusively uses verified archives and direct web history. No inverter, battery, relay, or meter settings are changed.
 
 The earlier runtime limitation above is superseded: direct source authentication proves provenance without Docker access. Current configuration uses Los Gatos weather as requested, although Solar Assistant's configured location is labeled Morgan Hill.
+
+## See also
+
+The models, validation scheme and 2026-10-11 results of this forecaster are summarised with the rest of the system in [`docs/10_models_and_training.md`](../../docs/10_models_and_training.md), section 5. Screenshots of every forecast chart, in both the validated and the weather-aware XGBoost views, are in [`docs/screenshots/`](../../docs/screenshots/README.md).

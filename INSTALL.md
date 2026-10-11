@@ -1,5 +1,10 @@
 # Microgrid IEMS — Installation Guide for Dr. Mantey's House
 
+> This guide is for the production deployment at the house. The single-box
+> ASUS Ascent GX10 build, with Nemotron, the forecasters and the system map, is
+> set up with [`gx10/README.md`](gx10/README.md) and described in
+> [`docs/10_models_and_training.md`](docs/10_models_and_training.md).
+
 This is the from-scratch setup walkthrough for the residential Intelligent
 Energy Management System (IEMS). Follow it top to bottom on a freshly imaged
 Mac mini (or any Mac) sitting next to the eGauge meter at the house. By the

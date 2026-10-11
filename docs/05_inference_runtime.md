@@ -276,3 +276,16 @@ Given one `nilm_disaggregated` row, the questions in order.
 5. Does `avg_w` come from a regression or from `APPLIANCE_NOMINAL_W`? If the
    model is single head it is the nominal, which is a constant, not a
    measurement.
+
+---
+
+## The Nemotron engine on the GX10
+
+With `NILM_ENGINE=nemotron`, `NEMOTRON_URL` and `NEMOTRON_MODEL` set in `gx10/.env`, the loop keeps its feature construction and gates. It asks the fine-tuned Nemotron for the appliance decisions before the postprocess gates.
+
+1. `onnx_disaggregator.py` builds the same 100 × 18 window it gives the BiLSTM, undoes the z-score, and calls `nemotron_engine.predict(panel, tensor, norm)`.
+2. `nemotron_prompt.build_messages()` turns the window into the prompt the model was trained on. `parse_answer()` reads `name=ON` / `name=OFF` lines, or comma- or semicolon-separated pairs.
+3. ON maps to probability 0.95 and OFF to 0.05. Those then pass through the same thresholds, power gate, mutual exclusion and panel rules as the BiLSTM output.
+4. Any head without an answer, and any tick where :8011 cannot be reached, uses the BiLSTM for that head. The row's model field records the engine, for example `nemotron:nilm [bilstm_fallback]`.
+
+One request per panel per 30 s tick takes about 1.5 s on the GB10, so a tick finishes in about 6 to 8 s. `services/iems/tests/test_nemotron_engine.py` covers the prompt, the parser and the fallback.

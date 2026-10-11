@@ -6,6 +6,28 @@ The earlier design bundle for moving the edge role onto a Raspberry Pi 3 B+ is k
 
 For all queries about this repository, the deployment or the data, contact Harsh Ranjan at hranjan@ucsc.edu.
 
+## Highlights
+
+IEMS watches a real home microgrid in Los Gatos, California: rooftop solar, a battery bank, a Generac generator and an eGauge meter on three sub-panels. It tells the operator which of 22 appliances are running from panel-level power alone, forecasts the next 24 hours of power, battery and appliance use, and turns that into advice. Every model is trained, served and retrained locally on one ASUS Ascent GX10 (NVIDIA GB10, 128 GB unified memory).
+
+| | |
+|---|---|
+| Demo video | https://vimeo.com/user264589926/iems-demo, and `iems-devpost-demo_v1 (1080p).mp4` in this folder |
+| Screenshots | [`docs/screenshots/`](docs/screenshots/README.md): every dashboard tab, every forecast chart, every Ask answer, the system map walk to one appliance, and the weather-aware XGBoost view |
+| Project story | [`docs/PROJECT_STORY.md`](docs/PROJECT_STORY.md): inspiration, how it was built, challenges and lessons |
+| Models and training | [`docs/10_models_and_training.md`](docs/10_models_and_training.md): every model, how it is trained and validated, and the measured results |
+
+### Models at a glance
+
+| Model | Job | Training | Result on 2026-10-11 |
+|---|---|---|---|
+| Physics labeller v2 | labels without submeters, abstains when physics cannot decide | rules over panel power, oscillation, sun and quiet envelopes | 1,956,739 timestamps relabelled |
+| Per-panel BiLSTM (ONNX) | ON/OFF for 22 appliances; teacher and fallback | rolling walk-forward over 4 chronological folds, weighted BCE and focal loss, on the GB10 | heat pump F1 0.932 on the last unseen fold |
+| Nemotron 3.5 Lightning 30B-A3B + LoRA | the live NILM engine | distilled from the gated BiLSTM with NeMo AutoModel, recurrent rounds of hard-example mining supervised by a local Nemotron agent | agreement with the teacher 0.9191 (round 1 0.8214); Panel 1 0.938, Panel 2 0.945, Panel 3 0.906 |
+| TiDE-inspired network, CUDA XGBoost, seasonal baselines | 24 h power for 7 channels, battery SOC and temperature | per-channel selection on chronological validation, empirical 80% bands, relearning every 20 min with a 1% promotion bar | battery SOC test MAE 2.33 points, battery temperature 2.75 °F |
+| Transformer, LightGBM, climatology ensemble | 24 h appliance P(on) and kWh quantiles | parallel GPU and CPU training with hot swap | champion revision 21, Brier 0.0857, skill 0.157 |
+| Smart DSS | when to run optional heavy loads | dynamic programming over tariff, solar, grid and a 30% SOC floor | advisory schedule, never a device command |
+
 ## What runs on the GX10
 
 The stack is defined in `gx10/docker-compose.gx10.yaml` and runs as the Compose project `microgrid-gx10`. The measured power forecaster runs beside it as user level systemd services that are installed from `gx10/forecast/`.
@@ -16,7 +38,11 @@ The stack is defined in `gx10/docker-compose.gx10.yaml` and runs as the Compose 
 | iems-backend | 8009 | `services/iems/backend/` and the `services/iems/` package |
 | iems-inference | none | `services/iems/inference/` |
 | iems-app (Remote GUI with the IEMS plugin and MCP client) | 3001 and 8000 | `services/remote-gui/` with `services/remote-gui-overlay-216/` |
-| replay-producer | 8099 | `gx10/replay/` |
+| replay-producer (opt-in Compose profile `replay`, stopped while the web collectors publish) | 8099 | `gx10/replay/` |
+| iems-web-collector (user systemd, the live data source since 2026-10-11) | none | `gx10/forecast/web_collector.py` |
+| nilm-nemotron (llama.cpp serving the fine-tuned Nemotron GGUF) | 8011 | `gx10/scripts/serve_nemotron_nilm.sh`, `gx10/nemotron/deploy_round.sh` |
+| Ollama (Nemotron 3.5 Lightning for Ask and the round monitor) | 11434 | host service |
+| nilm (NeMo AutoModel training container, idle between rounds) | none | `gx10/nemotron/run_on_gx10.sh` |
 | anylog-consumer | none | `streaming/kafka-egauge-pipeline/kafka_to_anylog.py` |
 | master and operator1 (AnyLog) | 32048 to 32149, 1883 | `streaming/anylog/docker-makefiles/` and `gx10/config/` |
 | postgres1 | 5432 | `streaming/postgres/` |
@@ -45,6 +71,7 @@ Every password in this repository is a placeholder such as `change-me`, and ever
 | `.gitignore` and `.dockerignore` | Paths kept out of Git and out of Docker build contexts |
 | `appliance_data_updated.txt` | Appliance inventory with rated power for each panel, used by the rules and the prompts |
 | `egauge_python_test.py` | Minimal eGauge API connection test |
+| `iems-devpost-demo_v1 (1080p).mp4` | The demo video, also at https://vimeo.com/user264589926/iems-demo |
 
 ## Folders
 
@@ -112,7 +139,7 @@ The IEMS application, organised by the four domains of the Adabi (2016) architec
 
 ### `docs/`
 
-The technical reference, written against the running production deployment. `docs/README.md` is the index. The numbered files cover the architecture, the file inventory, the physical labellers, the rules engines, the training pipeline, the inference runtime, every API route, streaming and storage, all scripts, and the GX10 target. `docs/services/` and `docs/streaming/` document each folder of the code, and `anylog_query_cookbook.md` collects useful AnyLog queries.
+The technical reference, written against the running production deployment. `docs/README.md` is the index. The numbered files cover the architecture, the file inventory, the physical labellers, the rules engines, the training pipeline, the inference runtime, every API route, streaming and storage, all scripts, and the GX10 target. `docs/services/` and `docs/streaming/` document each folder of the code, and `anylog_query_cookbook.md` collects useful AnyLog queries. `10_models_and_training.md` is the reference for every model and how it is trained, `PROJECT_STORY.md` tells how the project came together, and `screenshots/` holds the captured views of the live system.
 
 ### Other folders
 
